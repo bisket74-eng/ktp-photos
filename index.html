@@ -3,23 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <title>KTP's Photos</title>
 
   <style>
     :root {
-      --bg: #fff8f6;
-      --card: #ffffff;
-      --text: #3f3a3a;
-      --muted: #7a7070;
-      --accent: #b8758f;
-      --accent-dark: #8d4f6c;
-      --soft-pink: #f8dce5;
-      --soft-lavender: #e9ddf5;
-      --soft-mint: #dcefe7;
-      --soft-gold: #f5e6bf;
-      --shadow: 0 12px 30px rgba(90, 60, 80, 0.12);
-      --radius: 22px;
+      --text: #43383f;
+      --muted: #786c72;
+      --accent: #8d5c76;
+      --accent-dark: #4a3440;
+      --card: rgba(255, 255, 255, 0.72);
+      --border: rgba(255, 255, 255, 0.9);
+      --shadow: 0 18px 45px rgba(78, 48, 66, 0.13);
+      --radius: 26px;
     }
 
     * {
@@ -28,50 +23,93 @@
 
     body {
       margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background:
-        radial-gradient(circle at top left, #ffe7ef 0, transparent 32%),
-        radial-gradient(circle at bottom right, #e7f5ee 0, transparent 30%),
-        var(--bg);
       color: var(--text);
       min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:
+        linear-gradient(135deg,
+          #fff2f7 0%,
+          #fff8ef 34%,
+          #f4fbf6 68%,
+          #f5f0ff 100%);
+      background-attachment: fixed;
+    }
+
+    .site-frame {
+      width: min(1180px, calc(100% - 26px));
+      min-height: calc(100vh - 26px);
+      margin: 13px auto;
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.22);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cart-button {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      width: 52px;
+      height: 52px;
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      border-radius: 50%;
+      background: rgba(74, 52, 64, 0.92);
+      color: white;
+      font-size: 1.35rem;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      z-index: 30;
+    }
+
+    .cart-count {
+      position: absolute;
+      top: -4px;
+      right: -5px;
+      min-width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: #f4d9e4;
+      color: #4a3440;
+      font-size: 0.78rem;
+      font-weight: 800;
+      display: grid;
+      place-items: center;
+      border: 1px solid white;
     }
 
     header {
       text-align: center;
-      padding: 48px 20px 28px;
+      padding: 58px 20px 30px;
     }
 
     header h1 {
       margin: 0;
-      font-size: clamp(2.2rem, 5vw, 4rem);
+      font-size: clamp(2.6rem, 8vw, 4.8rem);
       font-family: Georgia, "Times New Roman", serif;
       font-weight: 500;
-      color: #4a3b43;
       letter-spacing: 1px;
     }
 
     header p {
-      margin: 14px auto 0;
+      margin: 16px auto 0;
       max-width: 720px;
-      font-size: 1.05rem;
+      font-size: 1.08rem;
       color: var(--muted);
-      line-height: 1.6;
+      line-height: 1.7;
     }
 
-    .top-bar {
-      width: min(1180px, 92%);
-      margin: 0 auto 26px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
+    .top-bar,
+    main {
+      width: min(1060px, 92%);
+      margin: 0 auto;
     }
 
     .breadcrumb {
-      font-size: 0.95rem;
+      margin: 18px 0 22px;
       color: var(--muted);
+      font-size: 1rem;
     }
 
     .breadcrumb button {
@@ -80,80 +118,62 @@
       color: var(--accent-dark);
       font-weight: 700;
       cursor: pointer;
-      font-size: 0.95rem;
+      font-size: 1rem;
       padding: 0;
-    }
-
-    .cart-button {
-      border: none;
-      background: #4a3b43;
-      color: white;
-      padding: 12px 18px;
-      border-radius: 999px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: var(--shadow);
-    }
-
-    .cart-button:hover {
-      background: #2f252b;
-    }
-
-    main {
-      width: min(1180px, 92%);
-      margin: 0 auto;
-      padding-bottom: 60px;
     }
 
     .folder-grid,
     .photo-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
       gap: 24px;
+      padding-bottom: 70px;
+    }
+
+    .folder-card,
+    .photo-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(8px);
     }
 
     .folder-card {
-      background: var(--card);
-      border-radius: var(--radius);
+      min-height: 210px;
       padding: 24px;
-      min-height: 220px;
-      box-shadow: var(--shadow);
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      position: relative;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.8);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
 
     .folder-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 18px 40px rgba(90, 60, 80, 0.18);
-    }
-
-    .folder-tab {
-      width: 120px;
-      height: 34px;
-      border-radius: 16px 16px 0 0;
-      background: var(--folder-color);
-      position: absolute;
-      top: 18px;
-      left: 24px;
+      transform: translateY(-4px);
+      box-shadow: 0 22px 55px rgba(78, 48, 66, 0.18);
     }
 
     .folder-body {
-      margin-top: 42px;
-      background: linear-gradient(135deg, var(--folder-color), #ffffff);
-      border-radius: 20px;
-      padding: 24px;
-      min-height: 135px;
+      height: 100%;
+      min-height: 160px;
+      border-radius: 22px;
+      padding: 28px;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
+      background:
+        linear-gradient(135deg, var(--folder-color), rgba(255,255,255,.82));
+      border: 1px solid rgba(255,255,255,.82);
+    }
+
+    .folder-icon {
+      font-size: 2rem;
+      margin-bottom: auto;
+      opacity: .78;
     }
 
     .folder-card h2 {
       margin: 0;
-      font-size: 1.45rem;
+      font-size: 1.7rem;
       font-family: Georgia, "Times New Roman", serif;
       font-weight: 500;
     }
@@ -161,59 +181,50 @@
     .folder-card p {
       margin: 8px 0 0;
       color: var(--muted);
-      font-size: 0.95rem;
-    }
-
-    .photo-card {
-      background: var(--card);
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
+      font-size: 1rem;
     }
 
     .photo-card img {
       width: 100%;
-      height: 250px;
+      height: 270px;
       object-fit: cover;
       display: block;
       background: #eee;
     }
 
     .photo-info {
-      padding: 16px;
+      padding: 18px;
     }
 
     .photo-info h3 {
       margin: 0;
-      font-size: 1.05rem;
-      font-weight: 650;
+      font-size: 1.1rem;
     }
 
-    .photo-info p {
-      margin: 6px 0 14px;
-      color: var(--muted);
-      font-size: 0.9rem;
-      line-height: 1.4;
+    .photo-info p,
+    .modal-caption p {
+      font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      color: #7d6673;
+      line-height: 1.55;
     }
 
     .photo-actions {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      margin-top: 14px;
     }
 
     .photo-actions button {
       border: none;
       border-radius: 999px;
-      padding: 10px 14px;
+      padding: 10px 15px;
       cursor: pointer;
       font-weight: 700;
     }
 
     .view-button {
-      background: var(--soft-lavender);
+      background: #eadff5;
       color: #5c4670;
     }
 
@@ -223,7 +234,7 @@
     }
 
     .cart-add-button.added {
-      background: var(--soft-mint);
+      background: #dcefe7;
       color: #37604f;
     }
 
@@ -232,24 +243,26 @@
     }
 
     .message {
-      text-align: center;
-      padding: 42px 20px;
-      color: var(--muted);
-      background: rgba(255, 255, 255, 0.68);
-      border-radius: var(--radius);
-      line-height: 1.6;
       grid-column: 1 / -1;
+      text-align: center;
+      padding: 42px 24px;
+      color: var(--muted);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      line-height: 1.7;
+      box-shadow: var(--shadow);
     }
 
     .modal {
       position: fixed;
       inset: 0;
-      background: rgba(45, 35, 45, 0.72);
+      background: rgba(45, 35, 45, 0.76);
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-      z-index: 20;
+      padding: 12px;
+      z-index: 40;
     }
 
     .modal.open {
@@ -259,8 +272,8 @@
     .modal-content {
       background: white;
       border-radius: 24px;
-      width: min(960px, 96vw);
-      max-height: 92vh;
+      width: min(1180px, 98vw);
+      max-height: 96vh;
       overflow: auto;
       box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
       position: relative;
@@ -268,74 +281,84 @@
 
     .modal-content img {
       width: 100%;
-      max-height: 72vh;
+      max-height: 84vh;
       object-fit: contain;
-      background: #f8f1f4;
+      background: #fff8fb;
       display: block;
     }
 
     .modal-caption {
-      padding: 18px 22px 24px;
+      padding: 18px 24px 26px;
     }
 
-    .modal-caption h3 {
-      margin: 0 0 8px;
-    }
-
-    .modal-caption p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.5;
+    .close-modal,
+    .close-cart {
+      border: none;
+      background: rgba(255, 255, 255, 0.94);
+      color: #4a3440;
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: bold;
     }
 
     .close-modal {
       position: absolute;
       top: 12px;
       right: 12px;
-      border: none;
-      background: rgba(255, 255, 255, 0.9);
-      color: #4a3b43;
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 1.3rem;
-      font-weight: bold;
+      width: 40px;
+      height: 40px;
+      font-size: 1.35rem;
     }
 
     .cart-panel {
       position: fixed;
+      top: 82px;
       right: 18px;
-      bottom: 18px;
-      width: min(380px, calc(100vw - 36px));
-      background: white;
+      width: min(390px, calc(100vw - 36px));
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid white;
       border-radius: 24px;
       box-shadow: 0 20px 50px rgba(70, 50, 70, 0.25);
       padding: 20px;
       display: none;
-      z-index: 15;
+      z-index: 35;
     }
 
     .cart-panel.open {
       display: block;
     }
 
-    .cart-panel h2 {
-      margin: 0 0 12px;
+    .cart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .cart-header h2 {
+      margin: 0;
       font-family: Georgia, "Times New Roman", serif;
       font-weight: 500;
+    }
+
+    .close-cart {
+      width: 32px;
+      height: 32px;
+      font-size: 1.1rem;
+      background: #f6e7ee;
     }
 
     .cart-list {
       display: grid;
       gap: 10px;
-      max-height: 260px;
+      max-height: 300px;
       overflow: auto;
       margin-bottom: 14px;
     }
 
     .cart-item {
-      display: flex;
+      display: grid;
+      grid-template-columns: 58px 1fr 30px;
       gap: 10px;
       align-items: center;
       padding: 8px;
@@ -350,9 +373,15 @@
       border-radius: 12px;
     }
 
-    .cart-item span {
-      font-size: 0.92rem;
-      font-weight: 650;
+    .cart-remove {
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
+      background: #f1d8e3;
+      color: #4a3440;
+      font-weight: 900;
+      cursor: pointer;
     }
 
     .cart-note {
@@ -366,7 +395,7 @@
       width: 100%;
       border: none;
       border-radius: 999px;
-      background: #4a3b43;
+      background: #4a3440;
       color: white;
       padding: 12px;
       font-weight: 800;
@@ -376,54 +405,62 @@
 
     footer {
       text-align: center;
-      padding: 20px;
+      padding: 24px;
       color: var(--muted);
-      font-size: 0.9rem;
+      font-size: 0.95rem;
     }
 
     @media (max-width: 620px) {
+      .site-frame {
+        width: 100%;
+        min-height: 100vh;
+        margin: 0;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+      }
+
       header {
-        padding-top: 34px;
+        padding-top: 60px;
       }
 
       .photo-card img {
-        height: 220px;
-      }
-
-      .top-bar {
-        align-items: stretch;
-      }
-
-      .cart-button {
-        width: 100%;
+        height: 235px;
       }
     }
   </style>
 </head>
 
 <body>
-  <header>
-    <h1>KTP's Photos</h1>
-    <p>
-      A soft, elegant gallery of original photography by Kristen.
-      Browse the collections, open a folder, and save favorite photos to your cart.
-    </p>
-  </header>
+  <button class="cart-button" onclick="toggleCart()" aria-label="Open cart">
+    🛒
+    <span class="cart-count" id="cartCount">0</span>
+  </button>
 
-  <div class="top-bar">
-    <div class="breadcrumb" id="breadcrumb">
-      Loading photo collections...
+  <div class="site-frame">
+    <header>
+      <h1>KTP's Photos</h1>
+      <p>
+        A soft, elegant gallery of original photography by Kristen.
+        Browse the collections, open a folder, and save favorite photos to your cart.
+      </p>
+    </header>
+
+    <div class="top-bar">
+      <div class="breadcrumb" id="breadcrumb">
+        Loading photo collections...
+      </div>
     </div>
 
-    <button class="cart-button" onclick="toggleCart()">
-      Cart <span id="cartCount">0</span>
-    </button>
-  </div>
+    <main>
+      <section id="folderView" class="folder-grid"></section>
+      <section id="galleryView" class="photo-grid hidden"></section>
+    </main>
 
-  <main>
-    <section id="folderView" class="folder-grid"></section>
-    <section id="galleryView" class="photo-grid hidden"></section>
-  </main>
+    <footer>
+      © <span id="year"></span> KTP's Photos
+    </footer>
+  </div>
 
   <div id="photoModal" class="modal" onclick="closePhotoModal(event)">
     <div class="modal-content">
@@ -437,58 +474,24 @@
   </div>
 
   <aside id="cartPanel" class="cart-panel">
-    <h2>Your Cart</h2>
+    <div class="cart-header">
+      <h2>Your Cart</h2>
+      <button class="close-cart" onclick="closeCart()">×</button>
+    </div>
+
     <div id="cartList" class="cart-list"></div>
+
     <p class="cart-note">
       Checkout is not connected yet. This is a placeholder cart for now.
       Later, this could connect to PayPal, Square, Stripe, Etsy, or a contact form.
     </p>
+
     <button class="checkout-button" onclick="fakeCheckout()">
       Future Checkout
     </button>
   </aside>
 
-  <footer>
-    © <span id="year"></span> KTP's Photos
-  </footer>
-
   <script>
-    /*
-      IMPORTANT:
-
-      This version looks for photos in the MAIN area of your repository,
-      right next to index.html.
-
-      Your GitHub repository should look like this:
-
-      ktp-photos
-        index.html
-        bees--bee1.jpg
-        bees--bee2.jpg
-        flowers--pink-flower.jpg
-        flowers--rose.jpg
-        sunsets--sunset1.jpg
-
-      You do NOT need the photos folder for this version.
-
-      Name photos like this:
-
-      category--photo-name.jpg
-
-      Examples:
-
-      bees--bee-on-flower.jpg
-      flowers--pink-rose.jpg
-      sunsets--orange-sky.jpg
-      birds--blue-bird.jpg
-
-      The website will automatically group them into folders by the part
-      before the two dashes.
-
-      Visitors cannot upload photos.
-      Only you upload photos through GitHub.
-    */
-
     const CONFIG = {
       githubUser: "bisket74-eng",
       repoName: "ktp-photos",
@@ -515,7 +518,7 @@
     ];
 
     let photoFolders = [];
-    let currentFolder = null;
+    let currentFolderIndex = null;
     let cart = [];
 
     const folderView = document.getElementById("folderView");
@@ -555,12 +558,9 @@
 
       if (nameWithoutExtension.includes("--")) {
         const parts = nameWithoutExtension.split("--");
-        const category = parts[0] || "uncategorized";
-        const title = parts.slice(1).join("--") || filename;
-
         return {
-          category,
-          title
+          category: parts[0] || "uncategorized",
+          title: parts.slice(1).join("--") || filename
         };
       }
 
@@ -614,7 +614,6 @@
 
         photoFolders = Object.values(grouped).map((folder, index) => {
           folder.photos.sort((a, b) => a.title.localeCompare(b.title));
-
           return {
             ...folder,
             description: `${folder.photos.length} photo${folder.photos.length === 1 ? "" : "s"} in this collection`,
@@ -622,32 +621,35 @@
           };
         });
 
+        if (!photoFolders.some(folder => folder.id === "flowers")) {
+          photoFolders.push({
+            id: "flowers",
+            title: "Flowers",
+            description: "Photos coming soon",
+            color: "#f8dce5",
+            photos: []
+          });
+        }
+
         photoFolders.sort((a, b) => a.title.localeCompare(b.title));
 
         renderFolders();
       } catch (error) {
         console.error(error);
-
         breadcrumb.textContent = "Photo gallery";
 
         folderView.innerHTML = `
           <div class="message">
             <strong>The photos could not be loaded.</strong><br><br>
-            Check these things:<br>
-            1. Your repository name is exactly: <strong>${CONFIG.repoName}</strong><br>
-            2. Your branch is named: <strong>${CONFIG.branch}</strong><br>
-            3. Your photo files are sitting next to <strong>index.html</strong><br>
-            4. Your photo file names look like this:<br><br>
-            <strong>bees--bee-on-flower.jpg</strong><br>
-            <strong>flowers--pink-rose.jpg</strong><br>
-            <strong>sunsets--orange-sky.jpg</strong>
+            Make sure your photo files are sitting next to <strong>index.html</strong>
+            and named like <strong>bees--bee-on-flower.jpg</strong>.
           </div>
         `;
       }
     }
 
     function renderFolders() {
-      currentFolder = null;
+      currentFolderIndex = null;
       folderView.classList.remove("hidden");
       galleryView.classList.add("hidden");
 
@@ -657,26 +659,21 @@
         folderView.innerHTML = `
           <div class="message">
             No photos were found yet.<br><br>
-            Upload your photo files into the main repository area,
-            right next to <strong>index.html</strong>.<br><br>
-            Name them like this:<br><br>
-            <strong>bees--bee1.jpg</strong><br>
-            <strong>flowers--pink-flower.jpg</strong><br>
-            <strong>sunsets--sunset1.jpg</strong>
+            Upload photo files right next to <strong>index.html</strong>.<br><br>
+            Example: <strong>bees--bee1.jpg</strong>
           </div>
         `;
         return;
       }
 
-      folderView.innerHTML = photoFolders.map(folder => `
+      folderView.innerHTML = photoFolders.map((folder, index) => `
         <article
           class="folder-card"
           style="--folder-color: ${folder.color}"
-          onclick="openFolder('${folder.id}')"
+          onclick="openFolder(${index})"
         >
-          <div class="folder-tab"></div>
-
           <div class="folder-body">
+            <div class="folder-icon">♡</div>
             <h2>${folder.title}</h2>
             <p>${folder.description}</p>
           </div>
@@ -684,10 +681,9 @@
       `).join("");
     }
 
-    function openFolder(folderId) {
-      currentFolder = photoFolders.find(folder => folder.id === folderId);
-
-      if (!currentFolder) return;
+    function openFolder(folderIndex) {
+      currentFolderIndex = folderIndex;
+      const folder = photoFolders[folderIndex];
 
       folderView.classList.add("hidden");
       galleryView.classList.remove("hidden");
@@ -695,20 +691,21 @@
       breadcrumb.innerHTML = `
         <button onclick="renderFolders()">All collections</button>
         &nbsp; / &nbsp;
-        ${currentFolder.title}
+        ${folder.title}
       `;
 
-      if (currentFolder.photos.length === 0) {
+      if (folder.photos.length === 0) {
         galleryView.innerHTML = `
           <div class="message">
-            This collection does not have photos yet.
+            <strong>${folder.title}</strong><br><br>
+            Photos coming soon.
           </div>
         `;
         return;
       }
 
-      galleryView.innerHTML = currentFolder.photos.map((photo, index) => {
-        const photoKey = getPhotoKey(currentFolder.id, index);
+      galleryView.innerHTML = folder.photos.map((photo, photoIndex) => {
+        const photoKey = getPhotoKey(folder.id, photo.fileName);
         const alreadyAdded = cart.some(item => item.key === photoKey);
 
         return `
@@ -720,16 +717,13 @@
               <p>${photo.description}</p>
 
               <div class="photo-actions">
-                <button
-                  class="view-button"
-                  onclick="openPhotoModal('${currentFolder.id}', ${index})"
-                >
+                <button class="view-button" onclick="openPhotoModal(${folderIndex}, ${photoIndex})">
                   View
                 </button>
 
                 <button
                   class="cart-add-button ${alreadyAdded ? "added" : ""}"
-                  onclick="addToCart('${currentFolder.id}', ${index}, this)"
+                  onclick="addToCart(${folderIndex}, ${photoIndex}, this)"
                 >
                   ${alreadyAdded ? "Added" : "Add to Cart"}
                 </button>
@@ -740,16 +734,13 @@
       }).join("");
     }
 
-    function getPhotoKey(folderId, photoIndex) {
-      return `${folderId}-${photoIndex}`;
+    function getPhotoKey(folderId, fileName) {
+      return `${folderId}-${fileName}`;
     }
 
-    function openPhotoModal(folderId, photoIndex) {
-      const folder = photoFolders.find(folder => folder.id === folderId);
-      if (!folder) return;
-
+    function openPhotoModal(folderIndex, photoIndex) {
+      const folder = photoFolders[folderIndex];
       const photo = folder.photos[photoIndex];
-      if (!photo) return;
 
       document.getElementById("modalImage").src = photo.src;
       document.getElementById("modalImage").alt = photo.title;
@@ -763,14 +754,10 @@
       document.getElementById("photoModal").classList.remove("open");
     }
 
-    function addToCart(folderId, photoIndex, button) {
-      const folder = photoFolders.find(folder => folder.id === folderId);
-      if (!folder) return;
-
+    function addToCart(folderIndex, photoIndex, button) {
+      const folder = photoFolders[folderIndex];
       const photo = folder.photos[photoIndex];
-      if (!photo) return;
-
-      const key = getPhotoKey(folderId, photoIndex);
+      const key = getPhotoKey(folder.id, photo.fileName);
       const alreadyAdded = cart.some(item => item.key === key);
 
       if (alreadyAdded) {
@@ -792,6 +779,15 @@
       updateCart();
     }
 
+    function removeFromCart(key) {
+      cart = cart.filter(item => item.key !== key);
+      updateCart();
+
+      if (currentFolderIndex !== null) {
+        openFolder(currentFolderIndex);
+      }
+    }
+
     function updateCart() {
       cartCount.textContent = cart.length;
 
@@ -807,6 +803,7 @@
             <span>${item.title}</span>
             <p class="cart-note">${item.folderTitle}</p>
           </div>
+          <button class="cart-remove" onclick="removeFromCart('${item.key}')">×</button>
         </div>
       `).join("");
     }
@@ -814,6 +811,10 @@
     function toggleCart() {
       cartPanel.classList.toggle("open");
       updateCart();
+    }
+
+    function closeCart() {
+      cartPanel.classList.remove("open");
     }
 
     function fakeCheckout() {

@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>KTPs Photo Gallery</title>
+
+  <style>
+    :root {
+      --bg: #fff8f6;
+      --card: #ffffff;
+      --text: #3f3a3a;
+      --muted: #7a7070;
+      --accent: #b8758f;
+      --accent-dark: #8d4f6c;
+      --soft-pink: #f8dce5;
+      --soft-lavender: #e9ddf5;
+      --soft-mint: #dcefe7;
+      --soft-gold: #f5e6bf;
+      --shadow: 0 12px 30px rgba(90, 60, 80, 0.12);
+      --radius: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:
+        radial-gradient(circle at top left, #ffe7ef 0, transparent 32%),
+        radial-gradient(circle at bottom right, #e7f5ee 0, transparent 30%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      text-align: center;
+      padding: 48px 20px 28px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 500;
+      color: #4a3b43;
+      letter-spacing: 1px;
+    }
+
+    header p {
+      margin: 14px auto 0;
+      max-width: 720px;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .top-bar {
+      width: min(1180px, 92%);
+      margin: 0 auto 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .breadcrumb {
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .breadcrumb button {
+      border: none;
+      background: none;
+      color: var(--accent-dark);
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.95rem;
+      padding: 0;
+    }
+
+    .cart-button {
+      border: none;
+      background: #4a3b43;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+
+    .cart-button:hover {
+      background: #2f252b;
+    }
+
+    main {
+      width: min(1180px, 92%);
+      margin: 0 auto;
+      padding-bottom: 60px;
+    }
+
+    .folder-grid,
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 24px;
+    }
+
+    .folder-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px;
+      min-height: 220px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .folder-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 18px 40px rgba(90, 60, 80, 0.18);
+    }
+
+    .folder-tab {
+      width: 120px;
+      height: 34px;
+      border-radius: 16px 16px 0 0;
+      background: var(--folder-color);
+      position: absolute;
+      top: 18px;
+      left: 24px;
+    }
+
+    .folder-body {
+      margin-top: 42px;
+      background: linear-gradient(135deg, var(--folder-color), #ffffff);
+      border-radius: 20px;
+      padding: 24px;
+      min-height: 135px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .folder-card h2 {
+      margin: 0;
+      font-size: 1.45rem;
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 500;
+    }
+
+    .folder-card p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .photo-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      display: block;
+      background: #eee;
+    }
+
+    .photo-info {
+      padding: 16px;
+    }
+
+    .photo-info h3 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 650;
+    }
+
+    .photo-info p {
+      margin: 6px 0 14px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .photo-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .photo-actions button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .view-button {
+      background: var(--soft-lavender);
+      color: #5c4670;
+    }
+
+    .cart-add-button {
+      background: var(--accent);
+      color: white;
+    }
+
+    .cart-add-button.added {
+      background: var(--soft-mint);
+      color: #37604f;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .message {
+      text-align: center;
+      padding: 42px 20px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.68);
+      border-radius: var(--radius);
+      line-height: 1.6;
+      grid-column: 1 / -1;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(45, 35, 45, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 20;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 24px;
+      width: min(960px, 96vw);
+      max-height: 92vh;
+      overflow: auto;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+      position: relative;
+    }
+
+    .modal-content img {
+      width: 100%;
+      max-height: 72vh;
+      object-fit: contain;
+      background: #f8f1f4;
+      display: block;
+    }
+
+    .modal-caption {
+      padding: 18px 22px 24px;
+    }
+
+    .modal-caption h3 {
+      margin: 0 0 8px;
+    }
+
+    .modal-caption p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      border: none;
+      background: rgba(255, 255, 255, 0.9);
+      color: #4a3b43;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.3rem;
+      font-weight: bold;
+    }
+
+    .cart-panel {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: min(380px, calc(100vw - 36px));
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(70, 50, 70, 0.25);
+      padding: 20px;
+      display: none;
+      z-index: 15;
+    }
+
+    .cart-panel.open {
+      display: block;
+    }
+
+    .cart-panel h2 {
+      margin: 0 0 12px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 500;
+    }
+
+    .cart-list {
+      display: grid;
+      gap: 10px;
+      max-height: 260px;
+      overflow: auto;
+      margin-bottom: 14px;
+    }
+
+    .cart-item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px;
+      border-radius: 14px;
+      background: #fff8f6;
+    }
+
+    .cart-item img {
+      width: 58px;
+      height: 58px;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+
+    .cart-item span {
+      font-size: 0.92rem;
+      font-weight: 650;
+    }
+
+    .cart-note {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+      margin: 4px 0;
+    }
+
+    .checkout-button {
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      background: #4a3b43;
+      color: white;
+      padding: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 620px) {
+      header {
+        padding-top: 34px;
+      }
+
+      .photo-card img {
+        height: 220px;
+      }
+
+      .top-bar {
+        align-items: stretch;
+      }
+
+      .cart-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>KTPs Photo Gallery</h1>
+    <p>
+      A soft, elegant gallery of original photography by Kristen.
+      Browse the collections, open a folder, and save favorite photos to your cart.
+    </p>
+  </header>
+
+  <div class="top-bar">
+    <div class="breadcrumb" id="breadcrumb">
+      Loading photo folders...
+    </div>
+
+    <button class="cart-button" onclick="toggleCart()">
+      Cart <span id="cartCount">0</span>
+    </button>
+  </div>
+
+  <main>
+    <section id="folderView" class="folder-grid"></section>
+    <section id="galleryView" class="photo-grid hidden"></section>
+  </main>
+
+  <div id="photoModal" class="modal" onclick="closePhotoModal(event)">
+    <div class="modal-content">
+      <button class="close-modal" onclick="closePhotoModal()">×</button>
+      <img id="modalImage" src="" alt="" />
+      <div class="modal-caption">
+        <h3 id="modalTitle"></h3>
+        <p id="modalDescription"></p>
+      </div>
+    </div>
+  </div>
+
+  <aside id="cartPanel" class="cart-panel">
+    <h2>Your Cart</h2>
+    <div id="cartList" class="cart-list"></div>
+    <p class="cart-note">
+      Checkout is not connected yet. This is a placeholder cart for now.
+      Later, this could connect to PayPal, Square, Stripe, Etsy, or a contact form.
+    </p>
+    <button class="checkout-button" onclick="fakeCheckout()">
+      Future Checkout
+    </button>
+  </aside>
+
+  <footer>
+    © <span id="year"></span> KTPs Photo Gallery
+  </footer>
+
+  <script>
+    /*
+      IMPORTANT SETUP:
+
+      Your GitHub repository should look like this:
+
+      index.html
+      photos/
+        flowers/
+          pink-bloom.jpg
+          yellow-flower.jpg
+        bees/
+          bee-on-flower.jpg
+          bumblebee.jpg
+        sunsets/
+          sunset-1.jpg
+
+      Visitors CANNOT upload photos.
+
+      You upload photos yourself by adding them to the repository.
+
+      This page automatically:
+      - Looks inside the photos folder
+      - Finds folders inside photos
+      - Shows those folders on the webpage
+      - Opens each folder
+      - Shows image files inside that folder
+      - Lets visitors add photos to a temporary cart
+    */
+
+    const CONFIG = {
+      githubUser: "bisket74-eng",
+      repoName: "ktp-photos",
+      branch: "main",
+      photoRootFolder: "photos"
+    };
+
+    const allowedImageTypes = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+
+    const folderColors = [
+      "#f8dce5",
+      "#e9ddf5",
+      "#dcefe7",
+      "#f5e6bf",
+      "#dce8f8",
+      "#f3dce8"
+    ];
+
+    let photoFolders = [];
+    let currentFolder = null;
+    let cart = [];
+
+    const folderView = document.getElementById("folderView");
+    const galleryView = document.getElementById("galleryView");
+    const breadcrumb = document.getElementById("breadcrumb");
+    const cartCount = document.getElementById("cartCount");
+    const cartPanel = document.getElementById("cartPanel");
+    const cartList = document.getElementById("cartList");
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    function githubApiUrl(path) {
+      return `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.repoName}/contents/${path}?ref=${CONFIG.branch}`;
+    }
+
+    function prettyName(name) {
+      return name
+        .replace(/\.[^/.]+$/, "")
+        .replace(/[-_]/g, " ")
+        .replace(/\b\w/g, letter => letter.toUpperCase());
+    }
+
+    function isImageFile(filename) {
+      const lower = filename.toLowerCase();
+      return allowedImageTypes.some(type => lower.endsWith(type));
+    }
+
+    async function loadPhotoFolders() {
+      try {
+        breadcrumb.textContent = "Loading photo folders...";
+
+        const response = await fetch(githubApiUrl(CONFIG.photoRootFolder));
+
+        if (!response.ok) {
+          throw new Error("Could not load the photos folder.");
+        }
+
+        const items = await response.json();
+        const folders = items.filter(item => item.type === "dir");
+
+        photoFolders = await Promise.all(
+          folders.map(async (folder, index) => {
+            const photoResponse = await fetch(githubApiUrl(folder.path));
+
+            if (!photoResponse.ok) {
+              return {
+                id: folder.name,
+                title: prettyName(folder.name),
+                description: "Photo collection",
+                color: folderColors[index % folderColors.length],
+                photos: []
+              };
+            }
+
+            const photoItems = await photoResponse.json();
+
+            const photos = photoItems
+              .filter(item => item.type === "file" && isImageFile(item.name))
+              .map(item => ({
+                title: prettyName(item.name),
+                description: `Original photo from the ${prettyName(folder.name)} collection.`,
+                src: item.download_url,
+                fileName: item.name
+              }));
+
+            return {
+              id: folder.name,
+              title: prettyName(folder.name),
+              description: `${photos.length} photo${photos.length === 1 ? "" : "s"} in this collection`,
+              color: folderColors[index % folderColors.length],
+              photos
+            };
+          })
+        );
+
+        renderFolders();
+      } catch (error) {
+        console.error(error);
+
+        breadcrumb.textContent = "Photo gallery";
+
+        folderView.innerHTML = `
+          <div class="message">
+            <strong>The photo folders could not be loaded.</strong><br><br>
+            Check these things:<br>
+            1. Your repository name matches this exactly: <strong>${CONFIG.repoName}</strong><br>
+            2. Your branch is named: <strong>${CONFIG.branch}</strong><br>
+            3. You created a folder named: <strong>${CONFIG.photoRootFolder}</strong><br>
+            4. Your photo folders are inside the <strong>${CONFIG.photoRootFolder}</strong> folder.
+          </div>
+        `;
+      }
+    }
+
+    function renderFolders() {
+      currentFolder = null;
+      folderView.classList.remove("hidden");
+      galleryView.classList.add("hidden");
+
+      breadcrumb.innerHTML = "Viewing all photo folders";
+
+      if (photoFolders.length === 0) {
+        folderView.innerHTML = `
+          <div class="message">
+            No photo folders were found yet.<br><br>
+            Create a folder named <strong>${CONFIG.photoRootFolder}</strong>,
+            then add category folders inside it, like
+            <strong>flowers</strong>, <strong>bees</strong>, or <strong>sunsets</strong>.
+          </div>
+        `;
+        return;
+      }
+
+      folderView.innerHTML = photoFolders.map(folder => `
+        <article
+          class="folder-card"
+          style="--folder-color: ${folder.color}"
+          onclick="openFolder('${folder.id}')"
+        >
+          <div class="folder-tab"></div>
+
+          <div class="folder-body">
+            <h2>${folder.title}</h2>
+            <p>${folder.description}</p>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function openFolder(folderId) {
+      currentFolder = photoFolders.find(folder => folder.id === folderId);
+
+      if (!currentFolder) return;
+
+      folderView.classList.add("hidden");
+      galleryView.classList.remove("hidden");
+
+      breadcrumb.innerHTML = `
+        <button onclick="renderFolders()">All folders</button>
+        &nbsp; / &nbsp;
+        ${currentFolder.title}
+      `;
+
+      if (currentFolder.photos.length === 0) {
+        galleryView.innerHTML = `
+          <div class="message">
+            This folder does not have photos yet.
+          </div>
+        `;
+        return;
+      }
+
+      galleryView.innerHTML = currentFolder.photos.map((photo, index) => {
+        const photoKey = getPhotoKey(currentFolder.id, index);
+        const alreadyAdded = cart.some(item => item.key === photoKey);
+
+        return `
+          <article class="photo-card">
+            <img src="${photo.src}" alt="${photo.title}" loading="lazy" />
+
+            <div class="photo-info">
+              <h3>${photo.title}</h3>
+              <p>${photo.description}</p>
+
+              <div class="photo-actions">
+                <button
+                  class="view-button"
+                  onclick="openPhotoModal('${currentFolder.id}', ${index})"
+                >
+                  View
+                </button>
+
+                <button
+                  class="cart-add-button ${alreadyAdded ? "added" : ""}"
+                  onclick="addToCart('${currentFolder.id}', ${index}, this)"
+                >
+                  ${alreadyAdded ? "Added" : "Add to Cart"}
+                </button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function getPhotoKey(folderId, photoIndex) {
+      return `${folderId}-${photoIndex}`;
+    }
+
+    function openPhotoModal(folderId, photoIndex) {
+      const folder = photoFolders.find(folder => folder.id === folderId);
+      if (!folder) return;
+
+      const photo = folder.photos[photoIndex];
+      if (!photo) return;
+
+      document.getElementById("modalImage").src = photo.src;
+      document.getElementById("modalImage").alt = photo.title;
+      document.getElementById("modalTitle").textContent = photo.title;
+      document.getElementById("modalDescription").textContent = photo.description;
+      document.getElementById("photoModal").classList.add("open");
+    }
+
+    function closePhotoModal(event) {
+      if (event && event.target.id !== "photoModal") return;
+      document.getElementById("photoModal").classList.remove("open");
+    }
+
+    function addToCart(folderId, photoIndex, button) {
+      const folder = photoFolders.find(folder => folder.id === folderId);
+      if (!folder) return;
+
+      const photo = folder.photos[photoIndex];
+      if (!photo) return;
+
+      const key = getPhotoKey(folderId, photoIndex);
+      const alreadyAdded = cart.some(item => item.key === key);
+
+      if (alreadyAdded) {
+        cart = cart.filter(item => item.key !== key);
+        button.textContent = "Add to Cart";
+        button.classList.remove("added");
+      } else {
+        cart.push({
+          key,
+          folderTitle: folder.title,
+          title: photo.title,
+          src: photo.src
+        });
+
+        button.textContent = "Added";
+        button.classList.add("added");
+      }
+
+      updateCart();
+    }
+
+    function updateCart() {
+      cartCount.textContent = cart.length;
+
+      if (cart.length === 0) {
+        cartList.innerHTML = `<p class="cart-note">Your cart is empty.</p>`;
+        return;
+      }
+
+      cartList.innerHTML = cart.map(item => `
+        <div class="cart-item">
+          <img src="${item.src}" alt="${item.title}" />
+          <div>
+            <span>${item.title}</span>
+            <p class="cart-note">${item.folderTitle}</p>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function toggleCart() {
+      cartPanel.classList.toggle("open");
+      updateCart();
+    }
+
+    function fakeCheckout() {
+      alert("Checkout is not connected yet. Later, this could open PayPal, Square, Stripe, Etsy, or a contact form.");
+    }
+
+    loadPhotoFolders();
+    updateCart();
+  </script>
+</body>
+</html>

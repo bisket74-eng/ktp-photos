@@ -49,38 +49,6 @@
       overflow: hidden;
     }
 
-    .cart-button {
-      position: fixed;
-      top: 18px;
-      right: 18px;
-      width: 52px;
-      height: 52px;
-      border: 1px solid rgba(255, 255, 255, 0.95);
-      border-radius: 50%;
-      background: rgba(74, 52, 64, 0.92);
-      color: white;
-      font-size: 1.35rem;
-      cursor: pointer;
-      box-shadow: var(--shadow);
-      z-index: 30;
-    }
-
-    .cart-count {
-      position: absolute;
-      top: -4px;
-      right: -5px;
-      min-width: 22px;
-      height: 22px;
-      border-radius: 999px;
-      background: #f4d9e4;
-      color: #4a3440;
-      font-size: 0.78rem;
-      font-weight: 800;
-      display: grid;
-      place-items: center;
-      border: 1px solid white;
-    }
-
     header {
       text-align: center;
       padding: 58px 20px 30px;
@@ -204,44 +172,43 @@
 
     .photo-info h3 {
       margin: 0;
-      font-size: 1.1rem;
+      font-size: 1.15rem;
     }
 
     .photo-info p,
     .modal-caption p {
       font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
       color: #7d6673;
-      line-height: 1.55;
+      line-height: 1.65;
+      font-size: 1.12rem;
     }
 
     .photo-actions {
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 14px;
+      justify-content: flex-end;
+      margin-top: 18px;
     }
 
     .photo-actions button {
       border: none;
-      border-radius: 999px;
-      padding: 10px 15px;
       cursor: pointer;
-      font-weight: 700;
+      font-weight: 800;
     }
 
     .view-button {
-      background: #eadff5;
-      color: #5c4670;
-    }
-
-    .cart-add-button {
-      background: var(--accent);
+      min-width: 122px;
+      height: 50px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #4a3440, #8d5c76);
       color: white;
+      font-size: 1.08rem;
+      letter-spacing: 0.3px;
+      box-shadow: 0 10px 22px rgba(74, 52, 64, 0.22);
     }
 
-    .cart-add-button.added {
-      background: #dcefe7;
-      color: #37604f;
+    .view-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 13px 28px rgba(74, 52, 64, 0.28);
     }
 
     .hidden {
@@ -287,29 +254,55 @@
 
     .modal-content img {
       width: 100%;
-      max-height: 88vh;
+      max-height: 86vh;
       object-fit: contain;
       background: #000000;
       display: block;
     }
 
     .modal-caption {
-      padding: 16px 22px 24px;
+      padding: 16px 22px 28px;
       background: #000000;
       color: white;
       text-align: center;
+      position: relative;
     }
 
     .modal-caption h3 {
       color: white;
-      margin: 0 0 6px;
+      margin: 0 0 8px;
       font-family: Georgia, "Times New Roman", serif;
       font-weight: 500;
+      font-size: 1.45rem;
     }
 
     .modal-caption p {
       color: #f2dce8;
-      margin: 0;
+      margin: 0 auto;
+      max-width: 760px;
+      font-size: 1.25rem;
+    }
+
+    .modal-cart-button {
+      position: fixed;
+      bottom: 18px;
+      left: 18px;
+      width: 48px;
+      height: 48px;
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.14);
+      color: white;
+      font-size: 1.25rem;
+      cursor: pointer;
+      z-index: 55;
+      backdrop-filter: blur(6px);
+    }
+
+    .modal-cart-button.added {
+      background: rgba(220, 239, 231, 0.95);
+      color: #37604f;
+      border-color: rgba(220, 239, 231, 1);
     }
 
     .close-modal,
@@ -344,7 +337,7 @@
       box-shadow: 0 20px 50px rgba(70, 50, 70, 0.25);
       padding: 20px;
       display: none;
-      z-index: 35;
+      z-index: 60;
     }
 
     .cart-panel.open {
@@ -450,16 +443,24 @@
       .photo-card img {
         height: 235px;
       }
+
+      .photo-info p {
+        font-size: 1.08rem;
+      }
+
+      .modal-caption p {
+        font-size: 1.15rem;
+      }
+
+      .view-button {
+        min-width: 125px;
+        height: 52px;
+      }
     }
   </style>
 </head>
 
 <body>
-  <button class="cart-button" onclick="toggleCart()" aria-label="Open cart">
-    🛒
-    <span class="cart-count" id="cartCount">0</span>
-  </button>
-
   <div class="site-frame">
     <header>
       <h1>KTP's Photos</h1>
@@ -488,7 +489,18 @@
   <div id="photoModal" class="modal" onclick="closePhotoModal(event)">
     <div class="modal-content">
       <button class="close-modal" onclick="closePhotoModal()">×</button>
+
+      <button
+        id="modalCartButton"
+        class="modal-cart-button"
+        onclick="toggleCurrentPhotoInCart(event)"
+        aria-label="Add photo to cart"
+      >
+        🛒
+      </button>
+
       <img id="modalImage" src="" alt="" />
+
       <div class="modal-caption">
         <h3 id="modalTitle"></h3>
         <p id="modalDescription"></p>
@@ -542,14 +554,16 @@
 
     let photoFolders = [];
     let currentFolderIndex = null;
+    let currentModalFolderIndex = null;
+    let currentModalPhotoIndex = null;
     let cart = [];
 
     const folderView = document.getElementById("folderView");
     const galleryView = document.getElementById("galleryView");
     const breadcrumb = document.getElementById("breadcrumb");
-    const cartCount = document.getElementById("cartCount");
     const cartPanel = document.getElementById("cartPanel");
     const cartList = document.getElementById("cartList");
+    const modalCartButton = document.getElementById("modalCartButton");
 
     document.getElementById("year").textContent = new Date().getFullYear();
 
@@ -727,41 +741,67 @@
         return;
       }
 
-      galleryView.innerHTML = folder.photos.map((photo, photoIndex) => {
-        const photoKey = getPhotoKey(folder.id, photo.fileName);
-        const alreadyAdded = cart.some(item => item.key === photoKey);
+      galleryView.innerHTML = folder.photos.map((photo, photoIndex) => `
+        <article class="photo-card">
+          <img src="${photo.src}" alt="${photo.title}" loading="lazy" />
 
-        return `
-          <article class="photo-card">
-            <img src="${photo.src}" alt="${photo.title}" loading="lazy" />
+          <div class="photo-info">
+            <h3>${photo.title}</h3>
+            <p>${photo.description}</p>
 
-            <div class="photo-info">
-              <h3>${photo.title}</h3>
-              <p>${photo.description}</p>
-
-              <div class="photo-actions">
-                <button class="view-button" onclick="openPhotoModal(${folderIndex}, ${photoIndex})">
-                  View
-                </button>
-
-                <button
-                  class="cart-add-button ${alreadyAdded ? "added" : ""}"
-                  onclick="addToCart(${folderIndex}, ${photoIndex}, this)"
-                >
-                  ${alreadyAdded ? "Added" : "Add to Cart"}
-                </button>
-              </div>
+            <div class="photo-actions">
+              <button class="view-button" onclick="openPhotoModal(${folderIndex}, ${photoIndex})">
+                View
+              </button>
             </div>
-          </article>
-        `;
-      }).join("");
+          </div>
+        </article>
+      `).join("");
     }
 
     function getPhotoKey(folderId, fileName) {
       return `${folderId}-${fileName}`;
     }
 
+    function getCurrentModalPhoto() {
+      if (currentModalFolderIndex === null || currentModalPhotoIndex === null) return null;
+
+      const folder = photoFolders[currentModalFolderIndex];
+      if (!folder) return null;
+
+      const photo = folder.photos[currentModalPhotoIndex];
+      if (!photo) return null;
+
+      return { folder, photo };
+    }
+
+    function updateModalCartButton() {
+      const current = getCurrentModalPhoto();
+
+      if (!current) {
+        modalCartButton.textContent = "🛒";
+        modalCartButton.classList.remove("added");
+        return;
+      }
+
+      const key = getPhotoKey(current.folder.id, current.photo.fileName);
+      const alreadyAdded = cart.some(item => item.key === key);
+
+      if (alreadyAdded) {
+        modalCartButton.textContent = "✓";
+        modalCartButton.classList.add("added");
+        modalCartButton.setAttribute("aria-label", "Remove photo from cart");
+      } else {
+        modalCartButton.textContent = "🛒";
+        modalCartButton.classList.remove("added");
+        modalCartButton.setAttribute("aria-label", "Add photo to cart");
+      }
+    }
+
     function openPhotoModal(folderIndex, photoIndex) {
+      currentModalFolderIndex = folderIndex;
+      currentModalPhotoIndex = photoIndex;
+
       const folder = photoFolders[folderIndex];
       const photo = folder.photos[photoIndex];
 
@@ -769,51 +809,53 @@
       document.getElementById("modalImage").alt = photo.title;
       document.getElementById("modalTitle").textContent = photo.title;
       document.getElementById("modalDescription").textContent = photo.description;
+
+      updateModalCartButton();
+
       document.getElementById("photoModal").classList.add("open");
     }
 
     function closePhotoModal(event) {
       if (event && event.target.id !== "photoModal") return;
+
       document.getElementById("photoModal").classList.remove("open");
+      currentModalFolderIndex = null;
+      currentModalPhotoIndex = null;
     }
 
-    function addToCart(folderIndex, photoIndex, button) {
-      const folder = photoFolders[folderIndex];
-      const photo = folder.photos[photoIndex];
-      const key = getPhotoKey(folder.id, photo.fileName);
+    function toggleCurrentPhotoInCart(event) {
+      event.stopPropagation();
+
+      const current = getCurrentModalPhoto();
+      if (!current) return;
+
+      const key = getPhotoKey(current.folder.id, current.photo.fileName);
       const alreadyAdded = cart.some(item => item.key === key);
 
       if (alreadyAdded) {
         cart = cart.filter(item => item.key !== key);
-        button.textContent = "Add to Cart";
-        button.classList.remove("added");
       } else {
         cart.push({
           key,
-          folderTitle: folder.title,
-          title: photo.title,
-          src: photo.src
+          folderTitle: current.folder.title,
+          title: current.photo.title,
+          src: current.photo.src
         });
 
-        button.textContent = "Added";
-        button.classList.add("added");
+        cartPanel.classList.add("open");
       }
 
       updateCart();
+      updateModalCartButton();
     }
 
     function removeFromCart(key) {
       cart = cart.filter(item => item.key !== key);
       updateCart();
-
-      if (currentFolderIndex !== null) {
-        openFolder(currentFolderIndex);
-      }
+      updateModalCartButton();
     }
 
     function updateCart() {
-      cartCount.textContent = cart.length;
-
       if (cart.length === 0) {
         cartList.innerHTML = `<p class="cart-note">Your cart is empty.</p>`;
         return;
@@ -826,14 +868,9 @@
             <span>${item.title}</span>
             <p class="cart-note">${item.folderTitle}</p>
           </div>
-          <button class="cart-remove" onclick="removeFromCart('${item.key}')">×</button>
+          <button class="cart-remove" onclick='removeFromCart(${JSON.stringify(item.key)})'>×</button>
         </div>
       `).join("");
-    }
-
-    function toggleCart() {
-      cartPanel.classList.toggle("open");
-      updateCart();
     }
 
     function closeCart() {

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>KTPs Photo Gallery</title>
+  <title>KTP's Photos</title>
 
   <style>
     :root {
@@ -403,7 +403,7 @@
 
 <body>
   <header>
-    <h1>KTPs Photo Gallery</h1>
+    <h1>KTP's Photos</h1>
     <p>
       A soft, elegant gallery of original photography by Kristen.
       Browse the collections, open a folder, and save favorite photos to your cart.
@@ -412,7 +412,7 @@
 
   <div class="top-bar">
     <div class="breadcrumb" id="breadcrumb">
-      Loading photo folders...
+      Loading photo collections...
     </div>
 
     <button class="cart-button" onclick="toggleCart()">
@@ -449,7 +449,7 @@
   </aside>
 
   <footer>
-    © <span id="year"></span> KTPs Photo Gallery
+    © <span id="year"></span> KTP's Photos
   </footer>
 
   <script>
@@ -458,28 +458,35 @@
 
       Your GitHub repository should look like this:
 
-      index.html
-      photos/
-        flowers/
-          pink-bloom.jpg
-          yellow-flower.jpg
-        bees/
-          bee-on-flower.jpg
-          bumblebee.jpg
-        sunsets/
-          sunset-1.jpg
+      ktp-photos
+        index.html
+        photos
+          bees--bee1.jpg
+          bees--bee2.jpg
+          flowers--pink-flower.jpg
+          flowers--rose.jpg
+          sunsets--sunset1.jpg
 
-      Visitors CANNOT upload photos.
+      You do NOT need category folders anymore.
 
-      You upload photos yourself by adding them to the repository.
+      Put all photos directly inside the photos folder.
 
-      This page automatically:
-      - Looks inside the photos folder
-      - Finds folders inside photos
-      - Shows those folders on the webpage
-      - Opens each folder
-      - Shows image files inside that folder
-      - Lets visitors add photos to a temporary cart
+      Name photos like this:
+
+      category--photo-name.jpg
+
+      Examples:
+
+      bees--bee-on-flower.jpg
+      flowers--pink-rose.jpg
+      sunsets--orange-sky.jpg
+      birds--blue-bird.jpg
+
+      The website will automatically group them into folders by the part
+      before the two dashes.
+
+      Visitors cannot upload photos.
+      Only you upload photos through GitHub.
     */
 
     const CONFIG = {
@@ -521,6 +528,8 @@
       return name
         .replace(/\.[^/.]+$/, "")
         .replace(/[-_]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
         .replace(/\b\w/g, letter => letter.toUpperCase());
     }
 
@@ -529,9 +538,29 @@
       return allowedImageTypes.some(type => lower.endsWith(type));
     }
 
+    function splitCategoryAndTitle(filename) {
+      const nameWithoutExtension = filename.replace(/\.[^/.]+$/, "");
+
+      if (nameWithoutExtension.includes("--")) {
+        const parts = nameWithoutExtension.split("--");
+        const category = parts[0] || "uncategorized";
+        const title = parts.slice(1).join("--") || filename;
+
+        return {
+          category,
+          title
+        };
+      }
+
+      return {
+        category: "uncategorized",
+        title: nameWithoutExtension
+      };
+    }
+
     async function loadPhotoFolders() {
       try {
-        breadcrumb.textContent = "Loading photo folders...";
+        breadcrumb.textContent = "Loading photo collections...";
 
         const response = await fetch(githubApiUrl(CONFIG.photoRootFolder));
 
@@ -540,42 +569,42 @@
         }
 
         const items = await response.json();
-        const folders = items.filter(item => item.type === "dir");
 
-        photoFolders = await Promise.all(
-          folders.map(async (folder, index) => {
-            const photoResponse = await fetch(githubApiUrl(folder.path));
+        const imageFiles = items.filter(item => {
+          return item.type === "file" && isImageFile(item.name);
+        });
 
-            if (!photoResponse.ok) {
-              return {
-                id: folder.name,
-                title: prettyName(folder.name),
-                description: "Photo collection",
-                color: folderColors[index % folderColors.length],
-                photos: []
-              };
-            }
+        const grouped = {};
 
-            const photoItems = await photoResponse.json();
+        imageFiles.forEach(item => {
+          const info = splitCategoryAndTitle(item.name);
+          const categoryId = info.category.toLowerCase();
 
-            const photos = photoItems
-              .filter(item => item.type === "file" && isImageFile(item.name))
-              .map(item => ({
-                title: prettyName(item.name),
-                description: `Original photo from the ${prettyName(folder.name)} collection.`,
-                src: item.download_url,
-                fileName: item.name
-              }));
-
-            return {
-              id: folder.name,
-              title: prettyName(folder.name),
-              description: `${photos.length} photo${photos.length === 1 ? "" : "s"} in this collection`,
-              color: folderColors[index % folderColors.length],
-              photos
+          if (!grouped[categoryId]) {
+            grouped[categoryId] = {
+              id: categoryId,
+              title: prettyName(info.category),
+              photos: []
             };
-          })
-        );
+          }
+
+          grouped[categoryId].photos.push({
+            title: prettyName(info.title),
+            description: `Original photo from the ${prettyName(info.category)} collection.`,
+            src: item.download_url,
+            fileName: item.name
+          });
+        });
+
+        photoFolders = Object.values(grouped).map((folder, index) => {
+          return {
+            ...folder,
+            description: `${folder.photos.length} photo${folder.photos.length === 1 ? "" : "s"} in this collection`,
+            color: folderColors[index % folderColors.length]
+          };
+        });
+
+        photoFolders.sort((a, b) => a.title.localeCompare(b.title));
 
         renderFolders();
       } catch (error) {
@@ -585,12 +614,14 @@
 
         folderView.innerHTML = `
           <div class="message">
-            <strong>The photo folders could not be loaded.</strong><br><br>
+            <strong>The photos could not be loaded.</strong><br><br>
             Check these things:<br>
-            1. Your repository name matches this exactly: <strong>${CONFIG.repoName}</strong><br>
+            1. Your repository name is exactly: <strong>${CONFIG.repoName}</strong><br>
             2. Your branch is named: <strong>${CONFIG.branch}</strong><br>
             3. You created a folder named: <strong>${CONFIG.photoRootFolder}</strong><br>
-            4. Your photo folders are inside the <strong>${CONFIG.photoRootFolder}</strong> folder.
+            4. Your actual photo files are directly inside the <strong>${CONFIG.photoRootFolder}</strong> folder.<br><br>
+            Example filename:<br>
+            <strong>bees--bee-on-flower.jpg</strong>
           </div>
         `;
       }
@@ -601,15 +632,17 @@
       folderView.classList.remove("hidden");
       galleryView.classList.add("hidden");
 
-      breadcrumb.innerHTML = "Viewing all photo folders";
+      breadcrumb.innerHTML = "Viewing all photo collections";
 
       if (photoFolders.length === 0) {
         folderView.innerHTML = `
           <div class="message">
-            No photo folders were found yet.<br><br>
-            Create a folder named <strong>${CONFIG.photoRootFolder}</strong>,
-            then add category folders inside it, like
-            <strong>flowers</strong>, <strong>bees</strong>, or <strong>sunsets</strong>.
+            No photos were found yet.<br><br>
+            Open the <strong>${CONFIG.photoRootFolder}</strong> folder and upload photos directly into it.<br><br>
+            Name them like this:<br>
+            <strong>bees--bee1.jpg</strong><br>
+            <strong>flowers--pink-flower.jpg</strong><br>
+            <strong>sunsets--sunset1.jpg</strong>
           </div>
         `;
         return;
@@ -640,7 +673,7 @@
       galleryView.classList.remove("hidden");
 
       breadcrumb.innerHTML = `
-        <button onclick="renderFolders()">All folders</button>
+        <button onclick="renderFolders()">All collections</button>
         &nbsp; / &nbsp;
         ${currentFolder.title}
       `;
@@ -648,7 +681,7 @@
       if (currentFolder.photos.length === 0) {
         galleryView.innerHTML = `
           <div class="message">
-            This folder does not have photos yet.
+            This collection does not have photos yet.
           </div>
         `;
         return;

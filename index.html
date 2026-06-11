@@ -16,6 +16,7 @@
       --shadow: 0 18px 45px rgba(78, 48, 66, 0.13);
       --radius: 26px;
       --script-font: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      --frame-edge: max(13px, calc((100vw - 1180px) / 2));
     }
 
     * {
@@ -39,7 +40,7 @@
     .main-cart-button {
       position: fixed;
       top: 18px;
-      right: 18px;
+      right: calc(var(--frame-edge) + 18px);
       width: 52px;
       height: 52px;
       border: 1px solid rgba(255, 255, 255, 0.95);
@@ -281,7 +282,7 @@
     .modal-content {
       background: #000000;
       border-radius: 0;
-      width: 100vw;
+      width: min(1180px, calc(100% - 26px));
       height: 100vh;
       overflow: auto;
       box-shadow: none;
@@ -335,7 +336,7 @@
 
     .modal-bottom-controls {
       position: fixed;
-      right: 16px;
+      right: calc(var(--frame-edge) + 16px);
       bottom: 16px;
       display: flex;
       gap: 10px;
@@ -374,7 +375,7 @@
 
     .zoom-controls {
       position: fixed;
-      left: 16px;
+      left: calc(var(--frame-edge) + 16px);
       bottom: 16px;
       display: flex;
       gap: 8px;
@@ -395,7 +396,7 @@
     .cart-panel {
       position: fixed;
       top: 82px;
-      right: 18px;
+      right: calc(var(--frame-edge) + 18px);
       width: min(390px, calc(100vw - 36px));
       background: rgba(255, 255, 255, 0.96);
       border: 1px solid white;
@@ -498,6 +499,10 @@
     }
 
     @media (max-width: 620px) {
+      :root {
+        --frame-edge: 0px;
+      }
+
       .site-frame {
         width: 100%;
         min-height: 100vh;
@@ -505,6 +510,14 @@
         border-radius: 0;
         border-left: none;
         border-right: none;
+      }
+
+      .main-cart-button {
+        right: 18px;
+      }
+
+      .modal-content {
+        width: 100vw;
       }
 
       header {
@@ -541,6 +554,10 @@
       .modal-bottom-controls {
         right: 10px;
         bottom: 14px;
+      }
+
+      .cart-panel {
+        right: 18px;
       }
     }
   </style>

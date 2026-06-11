@@ -15,6 +15,7 @@
       --border: rgba(255, 255, 255, 0.9);
       --shadow: 0 18px 45px rgba(78, 48, 66, 0.13);
       --radius: 26px;
+      --script-font: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
     }
 
     * {
@@ -35,13 +36,50 @@
       background-attachment: fixed;
     }
 
+    .main-cart-button {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      width: 52px;
+      height: 52px;
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      border-radius: 50%;
+      background: rgba(74, 52, 64, 0.92);
+      color: white;
+      font-size: 1.35rem;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      z-index: 35;
+    }
+
+    .cart-count {
+      position: absolute;
+      top: -4px;
+      right: -5px;
+      min-width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: #f4d9e4;
+      color: #4a3440;
+      font-size: 0.78rem;
+      font-weight: 800;
+      display: grid;
+      place-items: center;
+      border: 1px solid white;
+    }
+
     .site-frame {
       width: min(1180px, calc(100% - 26px));
       min-height: calc(100vh - 26px);
       margin: 13px auto;
-      border: 1px solid rgba(255, 255, 255, 0.95);
       border-radius: 30px;
-      background: rgba(255, 255, 255, 0.20);
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.36) 50%, rgba(255,235,244,.28) 50%),
+        rgba(255, 255, 255, 0.20);
+      background-size: 14px 14px, auto;
+      border: 6px double rgba(141, 92, 118, 0.28);
+      outline: 1px solid rgba(255, 255, 255, 0.9);
+      outline-offset: -12px;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,.38),
         0 20px 60px rgba(90, 60, 80, 0.08);
@@ -51,15 +89,16 @@
 
     header {
       text-align: center;
-      padding: 58px 20px 30px;
+      padding: 62px 20px 30px;
     }
 
     header h1 {
       margin: 0;
-      font-size: clamp(2.6rem, 8vw, 4.8rem);
-      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(3rem, 9vw, 5.6rem);
+      font-family: var(--script-font);
       font-weight: 500;
       letter-spacing: 1px;
+      color: #4a3440;
     }
 
     header p {
@@ -177,10 +216,10 @@
 
     .photo-info p,
     .modal-caption p {
-      font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-family: var(--script-font);
       color: #7d6673;
       line-height: 1.65;
-      font-size: 1.12rem;
+      font-size: 1.28rem;
     }
 
     .photo-actions {
@@ -189,20 +228,17 @@
       margin-top: 18px;
     }
 
-    .photo-actions button {
-      border: none;
-      cursor: pointer;
-      font-weight: 800;
-    }
-
     .view-button {
       min-width: 122px;
       height: 50px;
+      border: none;
       border-radius: 999px;
       background: linear-gradient(135deg, #4a3440, #8d5c76);
       color: white;
       font-size: 1.08rem;
       letter-spacing: 0.3px;
+      font-weight: 800;
+      cursor: pointer;
       box-shadow: 0 10px 22px rgba(74, 52, 64, 0.22);
     }
 
@@ -246,22 +282,36 @@
       background: #000000;
       border-radius: 0;
       width: 100vw;
-      max-height: 100vh;
+      height: 100vh;
       overflow: auto;
       box-shadow: none;
       position: relative;
     }
 
-    .modal-content img {
+    .modal-image-wrap {
       width: 100%;
-      max-height: 86vh;
+      min-height: 72vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+      background: #000000;
+      padding: 16px;
+    }
+
+    .modal-content img {
+      max-width: 100%;
+      max-height: 82vh;
       object-fit: contain;
       background: #000000;
       display: block;
+      transform: scale(1);
+      transform-origin: center center;
+      transition: transform 0.15s ease;
     }
 
     .modal-caption {
-      padding: 16px 22px 28px;
+      padding: 14px 22px 86px;
       background: #000000;
       color: white;
       text-align: center;
@@ -273,30 +323,41 @@
       margin: 0 0 8px;
       font-family: Georgia, "Times New Roman", serif;
       font-weight: 500;
-      font-size: 1.45rem;
+      font-size: 1.5rem;
     }
 
     .modal-caption p {
       color: #f2dce8;
       margin: 0 auto;
       max-width: 760px;
-      font-size: 1.25rem;
+      font-size: 1.42rem;
+    }
+
+    .modal-bottom-controls {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      z-index: 60;
+    }
+
+    .modal-cart-button,
+    .close-modal {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: bold;
+      border: 1px solid rgba(255,255,255,.35);
+      backdrop-filter: blur(6px);
     }
 
     .modal-cart-button {
-      position: fixed;
-      bottom: 18px;
-      left: 18px;
-      width: 48px;
-      height: 48px;
-      border: 1px solid rgba(255,255,255,.35);
-      border-radius: 50%;
       background: rgba(255, 255, 255, 0.14);
       color: white;
-      font-size: 1.25rem;
-      cursor: pointer;
-      z-index: 55;
-      backdrop-filter: blur(6px);
+      font-size: 1.22rem;
     }
 
     .modal-cart-button.added {
@@ -305,25 +366,30 @@
       border-color: rgba(220, 239, 231, 1);
     }
 
-    .close-modal,
-    .close-cart {
-      border: none;
-      background: rgba(255, 255, 255, 0.94);
+    .close-modal {
+      background: rgba(255, 255, 255, 0.92);
       color: #4a3440;
-      border-radius: 50%;
-      cursor: pointer;
-      font-weight: bold;
+      font-size: 1.5rem;
     }
 
-    .close-modal {
+    .zoom-controls {
       position: fixed;
-      top: 14px;
-      right: 14px;
-      width: 44px;
-      height: 44px;
-      font-size: 1.5rem;
-      z-index: 50;
-      background: rgba(255, 255, 255, 0.92);
+      left: 16px;
+      bottom: 16px;
+      display: flex;
+      gap: 8px;
+      z-index: 60;
+    }
+
+    .zoom-controls button {
+      border: 1px solid rgba(255,255,255,.35);
+      background: rgba(255,255,255,.14);
+      color: white;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 900;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
     }
 
     .cart-panel {
@@ -337,7 +403,7 @@
       box-shadow: 0 20px 50px rgba(70, 50, 70, 0.25);
       padding: 20px;
       display: none;
-      z-index: 60;
+      z-index: 70;
     }
 
     .cart-panel.open {
@@ -362,6 +428,11 @@
       height: 32px;
       font-size: 1.1rem;
       background: #f6e7ee;
+      color: #4a3440;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: bold;
     }
 
     .cart-list {
@@ -437,7 +508,7 @@
       }
 
       header {
-        padding-top: 60px;
+        padding-top: 70px;
       }
 
       .photo-card img {
@@ -445,22 +516,42 @@
       }
 
       .photo-info p {
-        font-size: 1.08rem;
+        font-size: 1.18rem;
       }
 
       .modal-caption p {
-        font-size: 1.15rem;
+        font-size: 1.28rem;
       }
 
       .view-button {
         min-width: 125px;
         height: 52px;
       }
+
+      .zoom-controls {
+        left: 10px;
+        bottom: 14px;
+      }
+
+      .zoom-controls button {
+        padding: 9px 11px;
+        font-size: 0.9rem;
+      }
+
+      .modal-bottom-controls {
+        right: 10px;
+        bottom: 14px;
+      }
     }
   </style>
 </head>
 
 <body>
+  <button class="main-cart-button" onclick="toggleCart()" aria-label="Open cart">
+    🛒
+    <span class="cart-count" id="cartCount">0</span>
+  </button>
+
   <div class="site-frame">
     <header>
       <h1>KTP's Photos</h1>
@@ -487,23 +578,33 @@
   </div>
 
   <div id="photoModal" class="modal" onclick="closePhotoModal(event)">
-    <div class="modal-content">
-      <button class="close-modal" onclick="closePhotoModal()">×</button>
-
-      <button
-        id="modalCartButton"
-        class="modal-cart-button"
-        onclick="toggleCurrentPhotoInCart(event)"
-        aria-label="Add photo to cart"
-      >
-        🛒
-      </button>
-
-      <img id="modalImage" src="" alt="" />
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-image-wrap">
+        <img id="modalImage" src="" alt="" />
+      </div>
 
       <div class="modal-caption">
         <h3 id="modalTitle"></h3>
         <p id="modalDescription"></p>
+      </div>
+
+      <div class="zoom-controls">
+        <button onclick="zoomPhoto(-0.2)">−</button>
+        <button onclick="resetZoom()">Reset</button>
+        <button onclick="zoomPhoto(0.2)">+</button>
+      </div>
+
+      <div class="modal-bottom-controls">
+        <button
+          id="modalCartButton"
+          class="modal-cart-button"
+          onclick="toggleCurrentPhotoInCart(event)"
+          aria-label="Add photo to cart"
+        >
+          🛒
+        </button>
+
+        <button class="close-modal" onclick="closePhotoModal()">×</button>
       </div>
     </div>
   </div>
@@ -557,6 +658,7 @@
     let currentModalFolderIndex = null;
     let currentModalPhotoIndex = null;
     let cart = [];
+    let currentZoom = 1;
 
     const folderView = document.getElementById("folderView");
     const galleryView = document.getElementById("galleryView");
@@ -564,6 +666,8 @@
     const cartPanel = document.getElementById("cartPanel");
     const cartList = document.getElementById("cartList");
     const modalCartButton = document.getElementById("modalCartButton");
+    const modalImage = document.getElementById("modalImage");
+    const cartCount = document.getElementById("cartCount");
 
     document.getElementById("year").textContent = new Date().getFullYear();
 
@@ -805,11 +909,12 @@
       const folder = photoFolders[folderIndex];
       const photo = folder.photos[photoIndex];
 
-      document.getElementById("modalImage").src = photo.src;
-      document.getElementById("modalImage").alt = photo.title;
+      modalImage.src = photo.src;
+      modalImage.alt = photo.title;
       document.getElementById("modalTitle").textContent = photo.title;
       document.getElementById("modalDescription").textContent = photo.description;
 
+      resetZoom();
       updateModalCartButton();
 
       document.getElementById("photoModal").classList.add("open");
@@ -821,6 +926,19 @@
       document.getElementById("photoModal").classList.remove("open");
       currentModalFolderIndex = null;
       currentModalPhotoIndex = null;
+      resetZoom();
+    }
+
+    function zoomPhoto(amount) {
+      currentZoom = Math.min(3, Math.max(0.6, currentZoom + amount));
+      modalImage.style.transform = `scale(${currentZoom})`;
+    }
+
+    function resetZoom() {
+      currentZoom = 1;
+      if (modalImage) {
+        modalImage.style.transform = "scale(1)";
+      }
     }
 
     function toggleCurrentPhotoInCart(event) {
@@ -841,8 +959,6 @@
           title: current.photo.title,
           src: current.photo.src
         });
-
-        cartPanel.classList.add("open");
       }
 
       updateCart();
@@ -856,6 +972,8 @@
     }
 
     function updateCart() {
+      cartCount.textContent = cart.length;
+
       if (cart.length === 0) {
         cartList.innerHTML = `<p class="cart-note">Your cart is empty.</p>`;
         return;
@@ -871,6 +989,11 @@
           <button class="cart-remove" onclick='removeFromCart(${JSON.stringify(item.key)})'>×</button>
         </div>
       `).join("");
+    }
+
+    function toggleCart() {
+      cartPanel.classList.toggle("open");
+      updateCart();
     }
 
     function closeCart() {

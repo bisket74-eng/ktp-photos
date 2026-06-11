@@ -454,22 +454,22 @@
 
   <script>
     /*
-      IMPORTANT SETUP:
+      IMPORTANT:
+
+      This version looks for photos in the MAIN area of your repository,
+      right next to index.html.
 
       Your GitHub repository should look like this:
 
       ktp-photos
         index.html
-        photos
-          bees--bee1.jpg
-          bees--bee2.jpg
-          flowers--pink-flower.jpg
-          flowers--rose.jpg
-          sunsets--sunset1.jpg
+        bees--bee1.jpg
+        bees--bee2.jpg
+        flowers--pink-flower.jpg
+        flowers--rose.jpg
+        sunsets--sunset1.jpg
 
-      You do NOT need category folders anymore.
-
-      Put all photos directly inside the photos folder.
+      You do NOT need the photos folder for this version.
 
       Name photos like this:
 
@@ -493,10 +493,17 @@
       githubUser: "bisket74-eng",
       repoName: "ktp-photos",
       branch: "main",
-      photoRootFolder: "photos"
+      photoRootFolder: ""
     };
 
     const allowedImageTypes = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+
+    const ignoredFiles = [
+      "index.html",
+      "readme.md",
+      "license",
+      "cname"
+    ];
 
     const folderColors = [
       "#f8dce5",
@@ -521,7 +528,8 @@
     document.getElementById("year").textContent = new Date().getFullYear();
 
     function githubApiUrl(path) {
-      return `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.repoName}/contents/${path}?ref=${CONFIG.branch}`;
+      const cleanPath = path ? `/${path}` : "";
+      return `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.repoName}/contents${cleanPath}?ref=${CONFIG.branch}`;
     }
 
     function prettyName(name) {
@@ -536,6 +544,10 @@
     function isImageFile(filename) {
       const lower = filename.toLowerCase();
       return allowedImageTypes.some(type => lower.endsWith(type));
+    }
+
+    function shouldIgnoreFile(filename) {
+      return ignoredFiles.includes(filename.toLowerCase());
     }
 
     function splitCategoryAndTitle(filename) {
@@ -565,13 +577,17 @@
         const response = await fetch(githubApiUrl(CONFIG.photoRootFolder));
 
         if (!response.ok) {
-          throw new Error("Could not load the photos folder.");
+          throw new Error("Could not load repository files.");
         }
 
         const items = await response.json();
 
         const imageFiles = items.filter(item => {
-          return item.type === "file" && isImageFile(item.name);
+          return (
+            item.type === "file" &&
+            isImageFile(item.name) &&
+            !shouldIgnoreFile(item.name)
+          );
         });
 
         const grouped = {};
@@ -597,6 +613,8 @@
         });
 
         photoFolders = Object.values(grouped).map((folder, index) => {
+          folder.photos.sort((a, b) => a.title.localeCompare(b.title));
+
           return {
             ...folder,
             description: `${folder.photos.length} photo${folder.photos.length === 1 ? "" : "s"} in this collection`,
@@ -618,10 +636,11 @@
             Check these things:<br>
             1. Your repository name is exactly: <strong>${CONFIG.repoName}</strong><br>
             2. Your branch is named: <strong>${CONFIG.branch}</strong><br>
-            3. You created a folder named: <strong>${CONFIG.photoRootFolder}</strong><br>
-            4. Your actual photo files are directly inside the <strong>${CONFIG.photoRootFolder}</strong> folder.<br><br>
-            Example filename:<br>
-            <strong>bees--bee-on-flower.jpg</strong>
+            3. Your photo files are sitting next to <strong>index.html</strong><br>
+            4. Your photo file names look like this:<br><br>
+            <strong>bees--bee-on-flower.jpg</strong><br>
+            <strong>flowers--pink-rose.jpg</strong><br>
+            <strong>sunsets--orange-sky.jpg</strong>
           </div>
         `;
       }
@@ -638,8 +657,9 @@
         folderView.innerHTML = `
           <div class="message">
             No photos were found yet.<br><br>
-            Open the <strong>${CONFIG.photoRootFolder}</strong> folder and upload photos directly into it.<br><br>
-            Name them like this:<br>
+            Upload your photo files into the main repository area,
+            right next to <strong>index.html</strong>.<br><br>
+            Name them like this:<br><br>
             <strong>bees--bee1.jpg</strong><br>
             <strong>flowers--pink-flower.jpg</strong><br>
             <strong>sunsets--sunset1.jpg</strong>

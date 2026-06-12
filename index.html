@@ -4,7 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KTP Photography</title>
-
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#4a3440">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KTP Photography">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Parisienne&family=Great+Vibes&display=swap" rel="stylesheet">
 
@@ -1968,5 +1972,12 @@
     loadPhotoFolders();
     updateCart();
   </script>
+  <script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("./service-worker.js");
+    });
+  }
+</script>
 </body>
 </html>

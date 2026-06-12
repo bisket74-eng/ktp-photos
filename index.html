@@ -1,9 +1,10 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KTP Photography</title>
+  <title>KTP's Photography</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -331,6 +332,8 @@
       background: #000000;
       padding: 12px;
       cursor: default;
+      touch-action: none;
+      user-select: none;
     }
 
     .modal-image-wrap.zoomed {
@@ -349,7 +352,7 @@
       display: block;
       transform: translate(0px, 0px) scale(1);
       transform-origin: center center;
-      transition: transform 0.08s ease;
+      transition: transform 0.04s ease;
       user-select: none;
       -webkit-user-drag: none;
       touch-action: none;
@@ -869,7 +872,7 @@
 
   <div class="site-frame">
     <header>
-      <h1 id="siteTitle">KTP Photography</h1>
+      <h1 id="siteTitle">KTP's Photography</h1>
       <p>
         A gallery of original photography by Krystin.
         Browse the collections, open a folder, and save favorite photos to your cart.
@@ -1069,6 +1072,13 @@
     let panStartY = 0;
     let panOriginX = 0;
     let panOriginY = 0;
+    let activePointers = new Map();
+    let pinchStartDistance = 0;
+    let pinchStartZoom = 1;
+    let pinchStartPanX = 0;
+    let pinchStartPanY = 0;
+    let pinchStartCenterX = 0;
+    let pinchStartCenterY = 0;
     let isHandlingPopState = false;
     let secretTapCount = 0;
     let secretTapTimer = null;
@@ -1122,10 +1132,11 @@
       secretKnock();
     }, { passive: false });
 
-    modalImage.addEventListener("pointerdown", startPan);
-    window.addEventListener("pointermove", movePan);
-    window.addEventListener("pointerup", endPan);
-    window.addEventListener("pointercancel", endPan);
+    modalImageWrap.addEventListener("pointerdown", startImagePointer);
+    modalImageWrap.addEventListener("pointermove", moveImagePointer);
+    modalImageWrap.addEventListener("pointerup", endImagePointer);
+    modalImageWrap.addEventListener("pointercancel", endImagePointer);
+    modalImageWrap.addEventListener("pointerleave", endImagePointer);
 
     function secretKnock() {
       secretTapCount++;
@@ -1450,7 +1461,7 @@
     }
 
     function zoomPhoto(amount) {
-      currentZoom = Math.min(3, Math.max(0.75, currentZoom + amount));
+      currentZoom = Math.min(4, Math.max(0.75, currentZoom + amount));
 
       if (currentZoom <= 1.01) {
         panX = 0;
@@ -1464,40 +1475,130 @@
       currentZoom = 1;
       panX = 0;
       panY = 0;
+      activePointers.clear();
+      isPanning = false;
+
       if (modalImage) {
         applyImageTransform();
       }
     }
 
-    function startPan(event) {
-      if (currentZoom <= 1.01) return;
+    function getPointerDistance(points) {
+      const a = points[0];
+      const b = points[1];
+      return Math.hypot(b.x - a.x, b.y - a.y);
+    }
 
+    function getPointerCenter(points) {
+      const a = points[0];
+      const b = points[1];
+
+      return {
+        x: (a.x + b.x) / 2,
+        y: (a.y + b.y) / 2
+      };
+    }
+
+    function startImagePointer(event) {
       event.preventDefault();
-      isPanning = true;
-      panStartX = event.clientX;
-      panStartY = event.clientY;
-      panOriginX = panX;
-      panOriginY = panY;
+
+      activePointers.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY
+      });
 
       try {
-        modalImage.setPointerCapture(event.pointerId);
+        modalImageWrap.setPointerCapture(event.pointerId);
       } catch (error) {}
+
+      const points = Array.from(activePointers.values());
+
+      if (points.length === 2) {
+        isPanning = false;
+        pinchStartDistance = getPointerDistance(points);
+        pinchStartZoom = currentZoom;
+        pinchStartPanX = panX;
+        pinchStartPanY = panY;
+
+        const center = getPointerCenter(points);
+        pinchStartCenterX = center.x;
+        pinchStartCenterY = center.y;
+        return;
+      }
+
+      if (points.length === 1 && currentZoom > 1.01) {
+        isPanning = true;
+        panStartX = event.clientX;
+        panStartY = event.clientY;
+        panOriginX = panX;
+        panOriginY = panY;
+      }
     }
 
-    function movePan(event) {
-      if (!isPanning) return;
+    function moveImagePointer(event) {
+      if (!activePointers.has(event.pointerId)) return;
 
-      const dx = event.clientX - panStartX;
-      const dy = event.clientY - panStartY;
+      event.preventDefault();
 
-      panX = panOriginX + dx;
-      panY = panOriginY + dy;
+      activePointers.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY
+      });
 
-      applyImageTransform();
+      const points = Array.from(activePointers.values());
+
+      if (points.length >= 2) {
+        const newDistance = getPointerDistance(points);
+
+        if (pinchStartDistance > 0) {
+          const zoomRatio = newDistance / pinchStartDistance;
+          currentZoom = Math.min(4, Math.max(0.75, pinchStartZoom * zoomRatio));
+        }
+
+        const center = getPointerCenter(points);
+        panX = pinchStartPanX + (center.x - pinchStartCenterX);
+        panY = pinchStartPanY + (center.y - pinchStartCenterY);
+
+        if (currentZoom <= 1.01) {
+          panX = 0;
+          panY = 0;
+        }
+
+        applyImageTransform();
+        return;
+      }
+
+      if (isPanning && currentZoom > 1.01) {
+        const dx = event.clientX - panStartX;
+        const dy = event.clientY - panStartY;
+
+        panX = panOriginX + dx;
+        panY = panOriginY + dy;
+
+        applyImageTransform();
+      }
     }
 
-    function endPan() {
-      isPanning = false;
+    function endImagePointer(event) {
+      if (activePointers.has(event.pointerId)) {
+        activePointers.delete(event.pointerId);
+      }
+
+      const points = Array.from(activePointers.values());
+
+      if (points.length === 1 && currentZoom > 1.01) {
+        isPanning = true;
+        panStartX = points[0].x;
+        panStartY = points[0].y;
+        panOriginX = panX;
+        panOriginY = panY;
+      } else {
+        isPanning = false;
+      }
+
+      if (points.length < 2) {
+        pinchStartDistance = 0;
+      }
     }
 
     function toggleCurrentPhotoInCart(event) {
@@ -1861,3 +1962,4 @@
   </script>
 </body>
 </html>
+```

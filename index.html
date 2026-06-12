@@ -838,12 +838,16 @@
       }
 
       .brand-title {
-        min-height: 150px;
-        grid-template-columns: auto 1fr;
-        align-items: center;
-        gap: 4px;
-      }
-
+  width: fit-content;
+  max-width: 100%;
+  min-height: 150px;
+  margin: 0 auto 12px;
+  padding: 14px 16px;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px;
+  border-radius: 26px;
+}
       .brand-logo {
         width: clamp(150px, 34vw, 178px);
         max-width: none;

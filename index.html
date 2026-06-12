@@ -571,7 +571,7 @@
 
   <div class="site-frame">
     <header>
-      <h1>KTP Photography</h1>
+      <h1>KTP's Photography</h1>
       <p>
         A gallery of original photography by Krystin.
         Browse the collections, open a folder, and save favorite photos to your cart.
@@ -594,7 +594,7 @@
     </footer>
   </div>
 
-  <div id="photoModal" class="modal" onclick="closePhotoModal(event)">
+  <div id="photoModal" class="modal" onclick="closePhotoModal(event, true)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-image-wrap">
         <img id="modalImage" src="" alt="" />
@@ -621,7 +621,7 @@
           🛒
         </button>
 
-        <button class="close-modal" onclick="closePhotoModal()">×</button>
+        <button class="close-modal" onclick="closePhotoModal(null, true)">×</button>
       </div>
     </div>
   </div>
@@ -713,6 +713,7 @@
     let currentModalPhotoIndex = null;
     let cart = [];
     let currentZoom = 1;
+    let isHandlingPopState = false;
 
     const folderView = document.getElementById("folderView");
     const galleryView = document.getElementById("galleryView");
@@ -724,6 +725,26 @@
     const cartCount = document.getElementById("cartCount");
 
     document.getElementById("year").textContent = new Date().getFullYear();
+
+    window.history.replaceState({ view: "home" }, "", window.location.pathname);
+
+    window.addEventListener("popstate", function(event) {
+      isHandlingPopState = true;
+
+      const state = event.state || { view: "home" };
+
+      if (state.view === "modal") {
+        openPhotoModal(state.folderIndex, state.photoIndex, false);
+      } else if (state.view === "gallery") {
+        closePhotoModalOnly();
+        openFolder(state.folderIndex, false);
+      } else {
+        closePhotoModalOnly();
+        renderFolders(false);
+      }
+
+      isHandlingPopState = false;
+    });
 
     function githubApiUrl(path) {
       const cleanPath = path ? `/${path}` : "";
@@ -830,7 +851,7 @@
 
         photoFolders.sort((a, b) => a.title.localeCompare(b.title));
 
-        renderFolders();
+        renderFolders(false);
       } catch (error) {
         console.error(error);
         breadcrumb.textContent = "Photo gallery";
@@ -845,12 +866,17 @@
       }
     }
 
-    function renderFolders() {
+    function renderFolders(pushToHistory = true) {
       currentFolderIndex = null;
       folderView.classList.remove("hidden");
       galleryView.classList.add("hidden");
+      closeCart();
 
       breadcrumb.innerHTML = "Viewing all photo collections";
+
+      if (pushToHistory && !isHandlingPopState) {
+        window.history.pushState({ view: "home" }, "", window.location.pathname);
+      }
 
       if (photoFolders.length === 0) {
         folderView.innerHTML = `
@@ -878,9 +904,12 @@
       `).join("");
     }
 
-    function openFolder(folderIndex) {
+    function openFolder(folderIndex, pushToHistory = true) {
       currentFolderIndex = folderIndex;
       const folder = photoFolders[folderIndex];
+
+      closePhotoModalOnly();
+      closeCart();
 
       folderView.classList.add("hidden");
       galleryView.classList.remove("hidden");
@@ -890,6 +919,14 @@
         &nbsp; / &nbsp;
         ${folder.title}
       `;
+
+      if (pushToHistory && !isHandlingPopState) {
+        window.history.pushState(
+          { view: "gallery", folderIndex },
+          "",
+          window.location.pathname
+        );
+      }
 
       if (folder.photos.length === 0) {
         galleryView.innerHTML = `
@@ -958,7 +995,7 @@
       }
     }
 
-    function openPhotoModal(folderIndex, photoIndex) {
+    function openPhotoModal(folderIndex, photoIndex, pushToHistory = true) {
       currentModalFolderIndex = folderIndex;
       currentModalPhotoIndex = photoIndex;
 
@@ -974,11 +1011,28 @@
       updateModalCartButton();
 
       document.getElementById("photoModal").classList.add("open");
+
+      if (pushToHistory && !isHandlingPopState) {
+        window.history.pushState(
+          { view: "modal", folderIndex, photoIndex },
+          "",
+          window.location.pathname
+        );
+      }
     }
 
-    function closePhotoModal(event) {
+    function closePhotoModal(event, useBackButton = false) {
       if (event && event.target.id !== "photoModal") return;
 
+      if (useBackButton && !isHandlingPopState) {
+        window.history.back();
+        return;
+      }
+
+      closePhotoModalOnly();
+    }
+
+    function closePhotoModalOnly() {
       document.getElementById("photoModal").classList.remove("open");
       currentModalFolderIndex = null;
       currentModalPhotoIndex = null;

@@ -69,41 +69,9 @@
       overflow: hidden;
     }
 
-    .main-cart-button {
-      position: absolute;
-      top: 18px;
-      right: 18px;
-      width: 52px;
-      height: 52px;
-      border: 1px solid rgba(255, 255, 255, 0.95);
-      border-radius: 50%;
-      background: rgba(74, 52, 64, 0.92);
-      color: white;
-      font-size: 1.35rem;
-      cursor: pointer;
-      box-shadow: var(--shadow);
-      z-index: 35;
-    }
-
-    .cart-count {
-      position: absolute;
-      top: -4px;
-      right: -5px;
-      min-width: 22px;
-      height: 22px;
-      border-radius: 999px;
-      background: #f4d9e4;
-      color: #4a3440;
-      font-size: 0.78rem;
-      font-weight: 800;
-      display: grid;
-      place-items: center;
-      border: 1px solid white;
-    }
-
     header {
       text-align: center;
-      padding: 62px 20px 30px;
+      padding: 50px 20px 28px;
     }
 
     header h1 {
@@ -114,22 +82,24 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 14px;
-      flex-wrap: wrap;
+      gap: 24px;
+      flex-wrap: nowrap;
       cursor: default;
       user-select: none;
+      max-width: 100%;
     }
 
     .brand-logo {
-      width: clamp(58px, 10vw, 92px);
-      height: clamp(58px, 10vw, 92px);
+      width: clamp(115px, 18vw, 205px);
+      height: clamp(115px, 18vw, 205px);
       object-fit: contain;
       display: block;
-      filter: drop-shadow(0 6px 16px rgba(141, 92, 118, 0.22));
+      filter: drop-shadow(0 9px 20px rgba(141, 92, 118, 0.28));
+      flex: 0 0 auto;
     }
 
     .brand-word {
-      font-size: clamp(3.1rem, 9vw, 5.8rem);
+      font-size: clamp(4rem, 10vw, 8rem);
       font-family: var(--script-font);
       font-weight: 600;
       letter-spacing: 1px;
@@ -138,10 +108,11 @@
       text-shadow:
         0 2px 0 rgba(255, 255, 255, 0.85),
         0 8px 18px rgba(141, 92, 118, 0.28);
+      white-space: nowrap;
     }
 
     header p {
-      margin: 12px auto 0;
+      margin: 14px auto 0;
       max-width: 720px;
       font-size: 1.08rem;
       color: #6f5d68;
@@ -155,12 +126,21 @@
       margin: 0 auto;
     }
 
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 6px;
+      margin-bottom: 22px;
+    }
+
     .breadcrumb {
-      margin: 18px 0 22px;
       color: #4a3440;
       font-size: 1.05rem;
       font-weight: 800;
       letter-spacing: 0.2px;
+      line-height: 1.35;
     }
 
     .breadcrumb button {
@@ -173,6 +153,37 @@
       padding: 0;
       text-decoration: underline;
       text-underline-offset: 4px;
+    }
+
+    .main-cart-button {
+      position: relative;
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      border-radius: 50%;
+      background: rgba(74, 52, 64, 0.92);
+      color: white;
+      font-size: 1.1rem;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(78, 48, 66, 0.18);
+      z-index: 35;
+      flex: 0 0 auto;
+    }
+
+    .cart-count {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: #f4d9e4;
+      color: #4a3440;
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: grid;
+      place-items: center;
+      border: 1px solid white;
     }
 
     .folder-grid {
@@ -477,8 +488,8 @@
 
     .cart-panel {
       position: absolute;
-      top: 82px;
-      right: 18px;
+      top: 265px;
+      right: 42px;
       width: min(390px, calc(100vw - 36px));
       background: rgba(255, 255, 255, 0.96);
       border: 1px solid white;
@@ -807,26 +818,50 @@
         border-right: none;
       }
 
-      .main-cart-button {
-        top: 18px;
-        right: 18px;
-      }
-
       header {
-        padding-top: 70px;
+        padding: 46px 12px 24px;
       }
 
       .brand-title {
-        gap: 10px;
+        gap: 12px;
       }
 
       .brand-logo {
-        width: 54px;
-        height: 54px;
+        width: clamp(86px, 25vw, 112px);
+        height: clamp(86px, 25vw, 112px);
       }
 
       .brand-word {
-        font-size: clamp(2.6rem, 10vw, 4rem);
+        font-size: clamp(3.05rem, 12vw, 4.7rem);
+      }
+
+      header p {
+        font-size: 1rem;
+        padding: 0 10px;
+      }
+
+      .top-bar {
+        width: min(1060px, 90%);
+        align-items: center;
+      }
+
+      .breadcrumb {
+        font-size: 0.95rem;
+      }
+
+      .breadcrumb button {
+        font-size: 0.95rem;
+      }
+
+      .main-cart-button {
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+      }
+
+      .cart-panel {
+        top: 260px;
+        right: 18px;
       }
 
       .modal-content {
@@ -894,10 +929,6 @@
         bottom: 14px;
       }
 
-      .cart-panel {
-        right: 18px;
-      }
-
       .manage-item {
         grid-template-columns: 64px 1fr;
       }
@@ -907,16 +938,26 @@
         height: 64px;
       }
     }
+
+    @media (max-width: 430px) {
+      .brand-logo {
+        width: 82px;
+        height: 82px;
+      }
+
+      .brand-word {
+        font-size: clamp(2.7rem, 11.5vw, 3.8rem);
+      }
+
+      .brand-title {
+        gap: 8px;
+      }
+    }
   </style>
 </head>
 
 <body oncontextmenu="return false;">
   <div class="site-frame">
-    <button class="main-cart-button" onclick="toggleCart()" aria-label="Open cart">
-      🛒
-      <span class="cart-count hidden" id="cartCount"></span>
-    </button>
-
     <aside id="cartPanel" class="cart-panel">
       <div class="cart-header">
         <h2>Your Cart</h2>
@@ -951,6 +992,11 @@
       <div class="breadcrumb" id="breadcrumb">
         Loading photo collections...
       </div>
+
+      <button class="main-cart-button" onclick="toggleCart()" aria-label="Open cart">
+        🛒
+        <span class="cart-count hidden" id="cartCount"></span>
+      </button>
     </div>
 
     <main>

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -986,7 +985,6 @@
         <div class="admin-tabs">
           <button id="uploadTabButton" class="admin-tab active" onclick="showAdminTab('upload')">Upload Photo</button>
           <button id="manageTabButton" class="admin-tab" onclick="showAdminTab('manage')">Manage Photos</button>
-          <button class="admin-tab" onclick="adminLogout()">Log Out</button>
         </div>
 
         <div id="uploadArea">
@@ -1048,7 +1046,12 @@
     const SUPABASE_PUBLIC_KEY = "sb_publishable_jTMgKMLZhXwLPBJyzMueqA_qf5QXVZ8";
     const STORAGE_BUCKET = "ktp-photos";
 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    });
 
     const folderColors = [
       "#f8dce5",
@@ -1097,6 +1100,7 @@
     let secretTapCount = 0;
     let secretTapTimer = null;
     let editingPhotoId = null;
+    let currentHistoryState = { view: "home" };
 
     const folderView = document.getElementById("folderView");
     const galleryView = document.getElementById("galleryView");
@@ -1122,19 +1126,46 @@
 
     window.history.replaceState({ view: "home" }, "", window.location.pathname);
 
+    function rememberHistoryState(state) {
+      currentHistoryState = state || { view: "home" };
+    }
+
+    function setHistoryState(state) {
+      if (isHandlingPopState) return;
+
+      const sameType = currentHistoryState && currentHistoryState.view === state.view;
+
+      if (sameType) {
+        window.history.replaceState(state, "", window.location.pathname);
+      } else {
+        window.history.pushState(state, "", window.location.pathname);
+      }
+
+      rememberHistoryState(state);
+    }
+
+    function snapToTop() {
+      setTimeout(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      }, 0);
+    }
+
     window.addEventListener("popstate", function(event) {
       isHandlingPopState = true;
 
       const state = event.state || { view: "home" };
+      rememberHistoryState(state);
 
       if (state.view === "modal") {
         openPhotoModal(state.folderIndex, state.photoIndex, false);
       } else if (state.view === "gallery") {
         closePhotoModalOnly();
         openFolder(state.folderIndex, false);
+        snapToTop();
       } else {
         closePhotoModalOnly();
         renderFolders(false);
+        snapToTop();
       }
 
       isHandlingPopState = false;
@@ -1151,6 +1182,10 @@
     modalImageWrap.addEventListener("pointerup", endImagePointer);
     modalImageWrap.addEventListener("pointercancel", endImagePointer);
     modalImageWrap.addEventListener("pointerleave", endImagePointer);
+
+    window.addEventListener("pagehide", function() {
+      supabaseClient.auth.signOut();
+    });
 
     function secretKnock() {
       secretTapCount++;
@@ -1291,7 +1326,7 @@
       editCollection.innerHTML = options;
     }
 
-    function renderFolders(pushToHistory = true) {
+    function renderFolders(updateHistory = true) {
       currentFolderIndex = null;
       folderView.classList.remove("hidden");
       galleryView.classList.add("hidden");
@@ -1299,9 +1334,11 @@
 
       breadcrumb.innerHTML = "Viewing all photo collections";
 
-      if (pushToHistory && !isHandlingPopState) {
-        window.history.pushState({ view: "home" }, "", window.location.pathname);
+      if (updateHistory) {
+        setHistoryState({ view: "home" });
       }
+
+      snapToTop();
 
       if (photoFolders.length === 0) {
         folderView.innerHTML = `
@@ -1327,7 +1364,7 @@
       `).join("");
     }
 
-    function openFolder(folderIndex, pushToHistory = true) {
+    function openFolder(folderIndex, updateHistory = true) {
       currentFolderIndex = folderIndex;
       const folder = photoFolders[folderIndex];
 
@@ -1343,13 +1380,11 @@
         ${escapeHtml(folder.title)}
       `;
 
-      if (pushToHistory && !isHandlingPopState) {
-        window.history.pushState(
-          { view: "gallery", folderIndex },
-          "",
-          window.location.pathname
-        );
+      if (updateHistory) {
+        setHistoryState({ view: "gallery", folderIndex });
       }
+
+      snapToTop();
 
       if (folder.photos.length === 0) {
         galleryView.innerHTML = `
@@ -1418,7 +1453,7 @@
       }
     }
 
-    function openPhotoModal(folderIndex, photoIndex, pushToHistory = true) {
+    function openPhotoModal(folderIndex, photoIndex, updateHistory = true) {
       currentModalFolderIndex = folderIndex;
       currentModalPhotoIndex = photoIndex;
 
@@ -1436,12 +1471,8 @@
       document.getElementById("photoModal").classList.add("open");
       document.body.classList.add("modal-open");
 
-      if (pushToHistory && !isHandlingPopState) {
-        window.history.pushState(
-          { view: "modal", folderIndex, photoIndex },
-          "",
-          window.location.pathname
-        );
+      if (updateHistory) {
+        setHistoryState({ view: "modal", folderIndex, photoIndex });
       }
     }
 
@@ -1682,27 +1713,27 @@
     }
 
     async function openAdminPanel() {
+      await supabaseClient.auth.signOut();
+
       adminOverlay.classList.add("open");
       adminStatus.textContent = "";
+      loginArea.classList.remove("hidden");
+      adminArea.classList.add("hidden");
 
-      const { data } = await supabaseClient.auth.getSession();
-
-      if (data.session) {
-        loginArea.classList.add("hidden");
-        adminArea.classList.remove("hidden");
-        showAdminTab("upload");
-        await loadPhotoFolders();
-      } else {
-        loginArea.classList.remove("hidden");
-        adminArea.classList.add("hidden");
-      }
-
+      document.getElementById("adminPassword").value = "";
+      showAdminTab("upload");
       populateCollectionDropdowns();
     }
 
-    function closeAdminPanel() {
+    async function closeAdminPanel() {
+      await supabaseClient.auth.signOut();
+
       adminOverlay.classList.remove("open");
       adminStatus.textContent = "";
+      loginArea.classList.remove("hidden");
+      adminArea.classList.add("hidden");
+
+      document.getElementById("adminPassword").value = "";
       cancelEdit();
     }
 
@@ -1732,14 +1763,6 @@
       adminStatus.textContent = "Logged in. You can upload or manage photos now.";
       showAdminTab("upload");
       await loadPhotoFolders();
-    }
-
-    async function adminLogout() {
-      await supabaseClient.auth.signOut();
-      loginArea.classList.remove("hidden");
-      adminArea.classList.add("hidden");
-      adminStatus.textContent = "Logged out.";
-      cancelEdit();
     }
 
     function showAdminTab(tabName) {
@@ -1987,4 +2010,3 @@
   </script>
 </body>
 </html>
-```

@@ -78,15 +78,24 @@
     }
 
     .brand-title {
-      width: 100%;
-      min-height: clamp(165px, 24vw, 250px);
-      display: grid;
-      grid-template-columns: auto 1fr;
-      align-items: center;
-      gap: 5px;
-      cursor: default;
-      user-select: none;
-    }
+  width: fit-content;
+  max-width: 100%;
+  min-height: clamp(165px, 24vw, 250px);
+  margin: 0 auto 14px;
+  padding: 16px 22px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px;
+  cursor: default;
+  user-select: none;
+
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-radius: 30px;
+  box-shadow: 0 12px 28px rgba(90, 60, 80, 0.10);
+  backdrop-filter: blur(6px);
+}
 
     .brand-logo {
       width: clamp(145px, 24vw, 220px);

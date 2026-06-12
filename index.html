@@ -70,7 +70,8 @@
     }
 
     header {
-      padding: 28px 26px 20px;
+      padding: 24px 24px 18px;
+      text-align: center;
     }
 
     header h1 {
@@ -78,55 +79,60 @@
     }
 
     .brand-title {
-  width: fit-content;
-  max-width: 100%;
-  min-height: clamp(165px, 24vw, 250px);
-  margin: 0 auto 14px;
-  padding: 16px 22px;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 8px;
-  cursor: default;
-  user-select: none;
+      width: fit-content;
+      max-width: 100%;
+      margin: 0 auto 12px;
+      padding: 9px 16px 8px 10px;
+      display: grid;
+      grid-template-columns: auto auto;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      cursor: default;
+      user-select: none;
 
-  background: rgba(255, 255, 255, 0.58);
-  border: 1px solid rgba(255, 255, 255, 0.92);
-  border-radius: 30px;
-  box-shadow: 0 12px 28px rgba(90, 60, 80, 0.10);
-  backdrop-filter: blur(6px);
-}
+      background:
+        radial-gradient(circle at 18% 28%, rgba(255, 230, 239, 0.96) 0%, transparent 42%),
+        radial-gradient(circle at 82% 70%, rgba(233, 214, 244, 0.55) 0%, transparent 48%),
+        linear-gradient(135deg, rgba(255, 236, 244, 0.82), rgba(248, 222, 235, 0.62));
+      border: 1px solid rgba(255, 255, 255, 0.82);
+      border-radius: 30px;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.74),
+        0 14px 30px rgba(92, 60, 82, 0.12);
+      backdrop-filter: blur(6px);
+    }
 
     .brand-logo {
-      width: clamp(145px, 24vw, 220px);
+      width: clamp(145px, 22vw, 205px);
       height: auto;
       object-fit: contain;
       display: block;
-      justify-self: start;
+      justify-self: end;
       align-self: center;
-      transform: translateY(-10px);
-      filter: drop-shadow(0 9px 20px rgba(141, 92, 118, 0.28));
+      transform: translate(-7px, -4px);
+      filter: drop-shadow(0 8px 16px rgba(141, 92, 118, 0.24));
     }
 
     .brand-word {
-      font-size: clamp(3.9rem, 9vw, 6.4rem);
+      font-size: clamp(3.75rem, 8.5vw, 6.1rem);
       font-family: var(--script-font);
       font-weight: 600;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
       color: #3f2a36;
       line-height: 0.92;
       text-align: left;
       align-self: center;
       justify-self: start;
-      transform: translateY(4px);
+      transform: translate(-6px, -5px);
       text-shadow:
-        0 2px 0 rgba(255, 255, 255, 0.85),
-        0 8px 18px rgba(141, 92, 118, 0.28);
+        0 2px 0 rgba(255, 255, 255, 0.78),
+        0 8px 18px rgba(141, 92, 118, 0.24);
       white-space: nowrap;
     }
 
     header p {
-      margin: 8px auto 0;
+      margin: 12px auto 0;
       max-width: 720px;
       font-size: 1.08rem;
       color: #6f5d68;
@@ -503,7 +509,7 @@
 
     .cart-panel {
       position: absolute;
-      top: 265px;
+      top: 250px;
       right: 42px;
       width: min(390px, calc(100vw - 36px));
       background: rgba(255, 255, 255, 0.96);
@@ -834,34 +840,33 @@
       }
 
       header {
-        padding: 22px 18px 18px;
+        padding: 18px 14px 16px;
       }
 
       .brand-title {
-  width: fit-content;
-  max-width: 100%;
-  min-height: 150px;
-  margin: 0 auto 12px;
-  padding: 14px 16px;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 4px;
-  border-radius: 26px;
-}
+        width: fit-content;
+        max-width: 100%;
+        margin: 0 auto 12px;
+        padding: 8px 10px 7px 6px;
+        grid-template-columns: auto auto;
+        gap: 0;
+        border-radius: 28px;
+      }
+
       .brand-logo {
-        width: clamp(150px, 34vw, 178px);
+        width: clamp(130px, 33vw, 156px);
         max-width: none;
-        justify-self: start;
+        justify-self: end;
         align-self: center;
-        transform: translateY(-12px);
+        transform: translate(-5px, -4px);
       }
 
       .brand-word {
-        font-size: clamp(3.35rem, 11vw, 4.8rem);
+        font-size: clamp(3rem, 10.2vw, 4.15rem);
         text-align: left;
         justify-self: start;
         align-self: center;
-        transform: translateY(-8px);
+        transform: translate(-5px, -5px);
       }
 
       header p {
@@ -889,7 +894,7 @@
       }
 
       .cart-panel {
-        top: 260px;
+        top: 242px;
         right: 18px;
       }
 
@@ -970,28 +975,23 @@
 
     @media (max-width: 430px) {
       header {
-        padding: 18px 14px 16px;
+        padding: 16px 12px 15px;
       }
 
       .brand-title {
-  width: fit-content;
-  max-width: 100%;
-  min-height: 138px;
-  margin: 0 auto 10px;
-  padding: 12px 14px;
-  grid-template-columns: auto 1fr;
-  gap: 3px;
-  border-radius: 24px;
-}
+        padding: 7px 8px 6px 5px;
+        gap: 0;
+        border-radius: 26px;
+      }
 
       .brand-logo {
-        width: 138px;
-        transform: translateY(-12px);
+        width: 126px;
+        transform: translate(-4px, -3px);
       }
 
       .brand-word {
-        font-size: clamp(3rem, 10.5vw, 4rem);
-        transform: translateY(-2px);
+        font-size: clamp(2.72rem, 10vw, 3.55rem);
+        transform: translate(-5px, -4px);
       }
     }
   </style>

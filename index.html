@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KTP's Photos</title>
+  <title>KTP Photography</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root {
@@ -100,6 +102,8 @@
       font-weight: 500;
       letter-spacing: 1px;
       color: #4a3440;
+      cursor: default;
+      user-select: none;
     }
 
     header p {
@@ -204,6 +208,8 @@
       object-fit: cover;
       display: block;
       background: #eee;
+      user-select: none;
+      -webkit-user-drag: none;
     }
 
     .photo-info {
@@ -309,6 +315,8 @@
       transform: scale(1);
       transform-origin: center center;
       transition: transform 0.15s ease;
+      user-select: none;
+      -webkit-user-drag: none;
     }
 
     .modal-caption {
@@ -491,6 +499,123 @@
       margin-top: 10px;
     }
 
+    .admin-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(30, 20, 30, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 100;
+    }
+
+    .admin-overlay.open {
+      display: flex;
+    }
+
+    .admin-box {
+      width: min(520px, 96vw);
+      max-height: 92vh;
+      overflow: auto;
+      background: rgba(255,255,255,.98);
+      border-radius: 26px;
+      border: 1px solid white;
+      box-shadow: 0 25px 70px rgba(0,0,0,.28);
+      padding: 24px;
+    }
+
+    .admin-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .admin-top h2 {
+      margin: 0;
+      font-family: var(--script-font);
+      color: #4a3440;
+      font-size: 2rem;
+    }
+
+    .admin-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: #f6e7ee;
+      color: #4a3440;
+      font-weight: 900;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .admin-box label {
+      display: block;
+      margin: 14px 0 6px;
+      font-weight: 800;
+      color: #4a3440;
+    }
+
+    .admin-box input,
+    .admin-box select,
+    .admin-box textarea {
+      width: 100%;
+      border: 1px solid rgba(141, 92, 118, 0.25);
+      border-radius: 14px;
+      padding: 12px;
+      font: inherit;
+      background: #fffafa;
+      color: #43383f;
+    }
+
+    .admin-box textarea {
+      min-height: 95px;
+      resize: vertical;
+    }
+
+    .admin-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .admin-primary,
+    .admin-secondary {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .admin-primary {
+      background: #4a3440;
+      color: white;
+    }
+
+    .admin-secondary {
+      background: #f2e2ea;
+      color: #4a3440;
+    }
+
+    .admin-status {
+      margin-top: 14px;
+      color: #6b5561;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .admin-small {
+      margin: 8px 0 0;
+      color: #786c72;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
     footer {
       text-align: center;
       padding: 24px;
@@ -563,7 +688,7 @@
   </style>
 </head>
 
-<body>
+<body oncontextmenu="return false;">
   <button class="main-cart-button" onclick="toggleCart()" aria-label="Open cart">
     🛒
     <span class="cart-count" id="cartCount">0</span>
@@ -571,7 +696,7 @@
 
   <div class="site-frame">
     <header>
-      <h1>KTP Photography</h1>
+      <h1 id="siteTitle">KTP's Photography</h1>
       <p>
         A gallery of original photography by Krystin.
         Browse the collections, open a folder, and save favorite photos to your cart.
@@ -590,14 +715,14 @@
     </main>
 
     <footer>
-      © <span id="year"></span> KTP's Photos
+      © <span id="year"></span> KTP's Photography
     </footer>
   </div>
 
   <div id="photoModal" class="modal" onclick="closePhotoModal(event, true)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-image-wrap">
-        <img id="modalImage" src="" alt="" />
+        <img id="modalImage" src="" alt="" draggable="false" />
       </div>
 
       <div class="modal-caption">
@@ -644,22 +769,63 @@
     </button>
   </aside>
 
+  <div id="adminOverlay" class="admin-overlay">
+    <div class="admin-box">
+      <div class="admin-top">
+        <h2>Photo Upload</h2>
+        <button class="admin-close" onclick="closeAdminPanel()">×</button>
+      </div>
+
+      <div id="loginArea">
+        <p class="admin-small">
+          Enter the upload login to add photos to the gallery.
+        </p>
+
+        <label for="adminEmail">Email / username</label>
+        <input id="adminEmail" type="email" autocomplete="username" />
+
+        <label for="adminPassword">Password</label>
+        <input id="adminPassword" type="password" autocomplete="current-password" />
+
+        <div class="admin-actions">
+          <button class="admin-primary" onclick="adminLogin()">Log In</button>
+        </div>
+      </div>
+
+      <div id="uploadArea" class="hidden">
+        <p class="admin-small">
+          Choose the collection, type a photo name, choose the file, add a description, then upload.
+          The site will rename the file automatically.
+        </p>
+
+        <label for="uploadCollection">Collection</label>
+        <select id="uploadCollection"></select>
+
+        <label for="uploadTitle">Photo name</label>
+        <input id="uploadTitle" type="text" placeholder="Example: Bee on purple flower" />
+
+        <label for="uploadFile">Photo file</label>
+        <input id="uploadFile" type="file" accept="image/*" />
+
+        <label for="uploadDescription">Photo description</label>
+        <textarea id="uploadDescription" placeholder="Write the description that should show under the photo."></textarea>
+
+        <div class="admin-actions">
+          <button class="admin-primary" onclick="uploadPhoto()">Upload Photo</button>
+          <button class="admin-secondary" onclick="adminLogout()">Log Out</button>
+        </div>
+      </div>
+
+      <div id="adminStatus" class="admin-status"></div>
+    </div>
+  </div>
+
   <script>
-    const CONFIG = {
-      githubUser: "bisket74-eng",
-      repoName: "ktp-photos",
-      branch: "main",
-      photoRootFolder: ""
-    };
+    const SUPABASE_URL = "https://xnwwngqennvwajlhvclj.supabase.co";
+    const SUPABASE_PUBLIC_KEY = "sb_publishable_jTMgKMLZhXwLPBJyzMueqA_qf5QXVZ8";
+    const STORAGE_BUCKET = "ktp-photos";
 
-    const allowedImageTypes = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
-
-    const ignoredFiles = [
-      "index.html",
-      "readme.md",
-      "license",
-      "cname"
-    ];
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
 
     const folderColors = [
       "#f8dce5",
@@ -675,36 +841,12 @@
     ];
 
     const placeholderCategories = [
-      {
-        id: "flowers",
-        title: "Flowers",
-        description: "Photos coming soon",
-        color: "#f8dce5"
-      },
-      {
-        id: "clouds",
-        title: "Clouds",
-        description: "Photos coming soon",
-        color: "#d9edf7"
-      },
-      {
-        id: "trees",
-        title: "Trees",
-        description: "Photos coming soon",
-        color: "#dcead0"
-      },
-      {
-        id: "nature",
-        title: "Nature",
-        description: "Photos coming soon",
-        color: "#e6e0d4"
-      },
-      {
-        id: "water",
-        title: "Water",
-        description: "Photos coming soon",
-        color: "#d7edf0"
-      }
+      { id: "bees", title: "Bees", description: "Photos coming soon", color: "#f5e6bf" },
+      { id: "flowers", title: "Flowers", description: "Photos coming soon", color: "#f8dce5" },
+      { id: "clouds", title: "Clouds", description: "Photos coming soon", color: "#d9edf7" },
+      { id: "trees", title: "Trees", description: "Photos coming soon", color: "#dcead0" },
+      { id: "nature", title: "Nature", description: "Photos coming soon", color: "#e6e0d4" },
+      { id: "water", title: "Water", description: "Photos coming soon", color: "#d7edf0" }
     ];
 
     let photoFolders = [];
@@ -714,6 +856,8 @@
     let cart = [];
     let currentZoom = 1;
     let isHandlingPopState = false;
+    let secretTapCount = 0;
+    let secretTapTimer = null;
 
     const folderView = document.getElementById("folderView");
     const galleryView = document.getElementById("galleryView");
@@ -723,6 +867,11 @@
     const modalCartButton = document.getElementById("modalCartButton");
     const modalImage = document.getElementById("modalImage");
     const cartCount = document.getElementById("cartCount");
+    const adminOverlay = document.getElementById("adminOverlay");
+    const loginArea = document.getElementById("loginArea");
+    const uploadArea = document.getElementById("uploadArea");
+    const adminStatus = document.getElementById("adminStatus");
+    const uploadCollection = document.getElementById("uploadCollection");
 
     document.getElementById("year").textContent = new Date().getFullYear();
 
@@ -746,9 +895,35 @@
       isHandlingPopState = false;
     });
 
-    function githubApiUrl(path) {
-      const cleanPath = path ? `/${path}` : "";
-      return `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.repoName}/contents${cleanPath}?ref=${CONFIG.branch}`;
+    document.getElementById("siteTitle").addEventListener("click", secretKnock);
+    document.getElementById("siteTitle").addEventListener("touchend", function(event) {
+      event.preventDefault();
+      secretKnock();
+    }, { passive: false });
+
+    function secretKnock() {
+      secretTapCount++;
+
+      clearTimeout(secretTapTimer);
+      secretTapTimer = setTimeout(() => {
+        secretTapCount = 0;
+      }, 2200);
+
+      if (secretTapCount >= 5) {
+        secretTapCount = 0;
+        clearTimeout(secretTapTimer);
+        openAdminPanel();
+      }
+    }
+
+    function slugify(text) {
+      return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/['"]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
     }
 
     function prettyName(name) {
@@ -760,110 +935,93 @@
         .replace(/\b\w/g, letter => letter.toUpperCase());
     }
 
-    function isImageFile(filename) {
-      const lower = filename.toLowerCase();
-      return allowedImageTypes.some(type => lower.endsWith(type));
-    }
+    function getPublicPhotoUrl(filePath) {
+      const result = supabaseClient.storage
+        .from(STORAGE_BUCKET)
+        .getPublicUrl(filePath);
 
-    function shouldIgnoreFile(filename) {
-      return ignoredFiles.includes(filename.toLowerCase());
-    }
-
-    function splitCategoryAndTitle(filename) {
-      const nameWithoutExtension = filename.replace(/\.[^/.]+$/, "");
-
-      if (nameWithoutExtension.includes("--")) {
-        const parts = nameWithoutExtension.split("--");
-        return {
-          category: parts[0] || "uncategorized",
-          title: parts.slice(1).join("--") || filename
-        };
-      }
-
-      return {
-        category: "uncategorized",
-        title: nameWithoutExtension
-      };
+      return result.data.publicUrl;
     }
 
     async function loadPhotoFolders() {
       try {
         breadcrumb.textContent = "Loading photo collections...";
 
-        const response = await fetch(githubApiUrl(CONFIG.photoRootFolder));
+        const { data, error } = await supabaseClient
+          .from("photos")
+          .select("id, collection, title, description, file_path, created_at")
+          .order("created_at", { ascending: false });
 
-        if (!response.ok) {
-          throw new Error("Could not load repository files.");
-        }
-
-        const items = await response.json();
-
-        const imageFiles = items.filter(item => {
-          return (
-            item.type === "file" &&
-            isImageFile(item.name) &&
-            !shouldIgnoreFile(item.name)
-          );
-        });
+        if (error) throw error;
 
         const grouped = {};
 
-        imageFiles.forEach(item => {
-          const info = splitCategoryAndTitle(item.name);
-          const categoryId = info.category.toLowerCase();
+        placeholderCategories.forEach(category => {
+          grouped[category.id] = {
+            id: category.id,
+            title: category.title,
+            description: category.description,
+            color: category.color,
+            photos: []
+          };
+        });
 
-          if (!grouped[categoryId]) {
-            grouped[categoryId] = {
-              id: categoryId,
-              title: prettyName(info.category),
+        (data || []).forEach(photoRow => {
+          const collectionId = slugify(photoRow.collection || "uncategorized") || "uncategorized";
+
+          if (!grouped[collectionId]) {
+            grouped[collectionId] = {
+              id: collectionId,
+              title: prettyName(collectionId),
+              description: "Photos coming soon",
+              color: folderColors[Object.keys(grouped).length % folderColors.length],
               photos: []
             };
           }
 
-          grouped[categoryId].photos.push({
-            title: prettyName(info.title),
-            description: `Original photo from the ${prettyName(info.category)} collection.`,
-            src: item.download_url,
-            fileName: item.name
+          grouped[collectionId].photos.push({
+            id: photoRow.id,
+            title: photoRow.title || "Untitled Photo",
+            description: photoRow.description || "",
+            filePath: photoRow.file_path,
+            src: getPublicPhotoUrl(photoRow.file_path)
           });
         });
 
         photoFolders = Object.values(grouped).map((folder, index) => {
           folder.photos.sort((a, b) => a.title.localeCompare(b.title));
+
           return {
             ...folder,
-            description: `${folder.photos.length} photo${folder.photos.length === 1 ? "" : "s"} in this collection`,
-            color: folderColors[index % folderColors.length]
+            description: folder.photos.length > 0
+              ? `${folder.photos.length} photo${folder.photos.length === 1 ? "" : "s"} in this collection`
+              : "Photos coming soon",
+            color: folder.color || folderColors[index % folderColors.length]
           };
-        });
-
-        placeholderCategories.forEach(category => {
-          if (!photoFolders.some(folder => folder.id === category.id)) {
-            photoFolders.push({
-              id: category.id,
-              title: category.title,
-              description: category.description,
-              color: category.color,
-              photos: []
-            });
-          }
         });
 
         photoFolders.sort((a, b) => a.title.localeCompare(b.title));
 
         renderFolders(false);
+        populateCollectionDropdown();
       } catch (error) {
         console.error(error);
         breadcrumb.textContent = "Photo gallery";
 
         folderView.innerHTML = `
           <div class="message">
-            <strong>The photos could not be loaded.</strong><br><br>
-            Make sure your photo files are sitting next to <strong>index.html</strong>
-            and named like <strong>bees--bee-on-flower.jpg</strong>.
+            <strong>The photos could not be loaded from Supabase.</strong><br><br>
+            Check that your <strong>photos</strong> table exists, your policies are set,
+            and your bucket is named <strong>ktp-photos</strong>.
           </div>
         `;
       }
+    }
+
+    function populateCollectionDropdown() {
+      uploadCollection.innerHTML = photoFolders.map(folder => `
+        <option value="${folder.id}">${folder.title}</option>
+      `).join("");
     }
 
     function renderFolders(pushToHistory = true) {
@@ -881,9 +1039,7 @@
       if (photoFolders.length === 0) {
         folderView.innerHTML = `
           <div class="message">
-            No photos were found yet.<br><br>
-            Upload photo files right next to <strong>index.html</strong>.<br><br>
-            Example: <strong>bees--bee1.jpg</strong>
+            No photo collections were found yet.
           </div>
         `;
         return;
@@ -940,7 +1096,7 @@
 
       galleryView.innerHTML = folder.photos.map((photo, photoIndex) => `
         <article class="photo-card">
-          <img src="${photo.src}" alt="${photo.title}" loading="lazy" />
+          <img src="${photo.src}" alt="${photo.title}" loading="lazy" draggable="false" />
 
           <div class="photo-info">
             <h3>${photo.title}</h3>
@@ -956,8 +1112,8 @@
       `).join("");
     }
 
-    function getPhotoKey(folderId, fileName) {
-      return `${folderId}-${fileName}`;
+    function getPhotoKey(folderId, filePath) {
+      return `${folderId}-${filePath}`;
     }
 
     function getCurrentModalPhoto() {
@@ -981,7 +1137,7 @@
         return;
       }
 
-      const key = getPhotoKey(current.folder.id, current.photo.fileName);
+      const key = getPhotoKey(current.folder.id, current.photo.filePath);
       const alreadyAdded = cart.some(item => item.key === key);
 
       if (alreadyAdded) {
@@ -1057,7 +1213,7 @@
       const current = getCurrentModalPhoto();
       if (!current) return;
 
-      const key = getPhotoKey(current.folder.id, current.photo.fileName);
+      const key = getPhotoKey(current.folder.id, current.photo.filePath);
       const alreadyAdded = cart.some(item => item.key === key);
 
       if (alreadyAdded) {
@@ -1112,6 +1268,122 @@
 
     function fakeCheckout() {
       alert("Checkout is not connected yet. Later, this could open PayPal, Square, Stripe, Etsy, or a contact form.");
+    }
+
+    async function openAdminPanel() {
+      adminOverlay.classList.add("open");
+      adminStatus.textContent = "";
+
+      const { data } = await supabaseClient.auth.getSession();
+
+      if (data.session) {
+        loginArea.classList.add("hidden");
+        uploadArea.classList.remove("hidden");
+      } else {
+        loginArea.classList.remove("hidden");
+        uploadArea.classList.add("hidden");
+      }
+
+      populateCollectionDropdown();
+    }
+
+    function closeAdminPanel() {
+      adminOverlay.classList.remove("open");
+      adminStatus.textContent = "";
+    }
+
+    async function adminLogin() {
+      const email = document.getElementById("adminEmail").value.trim();
+      const password = document.getElementById("adminPassword").value;
+
+      if (!email || !password) {
+        adminStatus.textContent = "Enter the email and password.";
+        return;
+      }
+
+      adminStatus.textContent = "Logging in...";
+
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        adminStatus.textContent = "Login failed. Check the email/password.";
+        return;
+      }
+
+      loginArea.classList.add("hidden");
+      uploadArea.classList.remove("hidden");
+      adminStatus.textContent = "Logged in. You can upload photos now.";
+    }
+
+    async function adminLogout() {
+      await supabaseClient.auth.signOut();
+      loginArea.classList.remove("hidden");
+      uploadArea.classList.add("hidden");
+      adminStatus.textContent = "Logged out.";
+    }
+
+    async function uploadPhoto() {
+      const collection = uploadCollection.value;
+      const title = document.getElementById("uploadTitle").value.trim();
+      const description = document.getElementById("uploadDescription").value.trim();
+      const fileInput = document.getElementById("uploadFile");
+      const file = fileInput.files[0];
+
+      if (!collection || !title || !file) {
+        adminStatus.textContent = "Choose a collection, type a photo name, and select a file.";
+        return;
+      }
+
+      const fileExt = file.name.split(".").pop().toLowerCase();
+      const cleanTitle = slugify(title);
+      const timeStamp = Date.now();
+      const filePath = `${collection}/${cleanTitle}-${timeStamp}.${fileExt}`;
+
+      adminStatus.textContent = "Uploading photo...";
+
+      const { error: uploadError } = await supabaseClient.storage
+        .from(STORAGE_BUCKET)
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false
+        });
+
+      if (uploadError) {
+        adminStatus.textContent = "Upload failed: " + uploadError.message;
+        return;
+      }
+
+      adminStatus.textContent = "Saving photo description...";
+
+      const { error: insertError } = await supabaseClient
+        .from("photos")
+        .insert({
+          collection,
+          title,
+          description,
+          file_path: filePath
+        });
+
+      if (insertError) {
+        adminStatus.textContent = "Photo uploaded, but description failed: " + insertError.message;
+        return;
+      }
+
+      document.getElementById("uploadTitle").value = "";
+      document.getElementById("uploadDescription").value = "";
+      document.getElementById("uploadFile").value = "";
+
+      adminStatus.textContent = "Photo uploaded successfully.";
+
+      await loadPhotoFolders();
+
+      const newFolderIndex = photoFolders.findIndex(folder => folder.id === collection);
+      if (newFolderIndex >= 0) {
+        openFolder(newFolderIndex);
+      }
     }
 
     loadPhotoFolders();

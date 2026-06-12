@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>KTP Photography</title>
+  <title>KtP Photography</title>
 
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#4a3440">
@@ -903,7 +903,7 @@
     </aside>
 
     <header>
-      <h1 id="siteTitle">KTP Photography</h1>
+      <h1 id="siteTitle">KtP Photography</h1>
       <p>
         A gallery of original photography by Krystin.
         Browse the collections, open a folder, and save favorite photos to your cart.
@@ -1779,66 +1779,168 @@
       adminStatus.textContent = "";
     }
 
-    async function uploadPhoto() {
-      const collection = uploadCollection.value;
-      const title = document.getElementById("uploadTitle").value.trim();
-      const description = document.getElementById("uploadDescription").value.trim();
-      const fileInput = document.getElementById("uploadFile");
-      const file = fileInput.files[0];
+    function formatFileSize(bytes) {
+  if (!bytes && bytes !== 0) return "";
+  const mb = bytes / (1024 * 1024);
+  return `${mb.toFixed(2)} MB`;
+}
 
-      if (!collection || !title || !file) {
-        adminStatus.textContent = "Choose a collection, type a photo name, and select a file.";
-        return;
-      }
-
-      const fileExt = file.name.split(".").pop().toLowerCase();
-      const cleanTitle = slugify(title);
-      const timeStamp = Date.now();
-      const filePath = `${collection}/${cleanTitle}-${timeStamp}.${fileExt}`;
-
-      adminStatus.textContent = "Uploading photo...";
-
-      const { error: uploadError } = await supabaseClient.storage
-        .from(STORAGE_BUCKET)
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false
-        });
-
-      if (uploadError) {
-        adminStatus.textContent = "Upload failed: " + uploadError.message;
-        return;
-      }
-
-      adminStatus.textContent = "Saving photo description...";
-
-      const { error: insertError } = await supabaseClient
-        .from("photos")
-        .insert({
-          collection,
-          title,
-          description,
-          file_path: filePath
-        });
-
-      if (insertError) {
-        adminStatus.textContent = "Photo uploaded, but description failed: " + insertError.message;
-        return;
-      }
-
-      document.getElementById("uploadTitle").value = "";
-      document.getElementById("uploadDescription").value = "";
-      document.getElementById("uploadFile").value = "";
-
-      adminStatus.textContent = "Photo uploaded successfully.";
-
-      await loadPhotoFolders();
-
-      const newFolderIndex = photoFolders.findIndex(folder => folder.id === collection);
-      if (newFolderIndex >= 0) {
-        openFolder(newFolderIndex);
-      }
+function resizeImageBeforeUpload(file, maxSize = 2000, quality = 0.84) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith("image/")) {
+      reject(new Error("Please choose an image file."));
+      return;
     }
+
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    image.onload = function () {
+      URL.revokeObjectURL(objectUrl);
+
+      let width = image.width;
+      let height = image.height;
+
+      if (!width || !height) {
+        reject(new Error("Could not read the image size."));
+        return;
+      }
+
+      const shouldResize = width > maxSize || height > maxSize;
+
+      if (shouldResize) {
+        if (width > height) {
+          height = Math.round((height * maxSize) / width);
+          width = maxSize;
+        } else {
+          width = Math.round((width * maxSize) / height);
+          height = maxSize;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(image, 0, 0, width, height);
+
+      canvas.toBlob(
+        function (blob) {
+          if (!blob) {
+            reject(new Error("Could not resize the image."));
+            return;
+          }
+
+          const resizedFile = new File(
+            [blob],
+            file.name.replace(/\.[^/.]+$/, "") + "-web.jpg",
+            {
+              type: "image/jpeg",
+              lastModified: Date.now()
+            }
+          );
+
+          resolve({
+            file: resizedFile,
+            originalWidth: image.width,
+            originalHeight: image.height,
+            newWidth: width,
+            newHeight: height,
+            originalSize: file.size,
+            newSize: resizedFile.size,
+            wasResized: shouldResize || file.type !== "image/jpeg"
+          });
+        },
+        "image/jpeg",
+        quality
+      );
+    };
+
+    image.onerror = function () {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("This image could not be opened by the browser."));
+    };
+
+    image.src = objectUrl;
+  });
+}
+
+async function uploadPhoto() {
+  const collection = uploadCollection.value;
+  const title = document.getElementById("uploadTitle").value.trim();
+  const description = document.getElementById("uploadDescription").value.trim();
+  const fileInput = document.getElementById("uploadFile");
+  const originalFile = fileInput.files[0];
+
+  if (!collection || !title || !originalFile) {
+    adminStatus.textContent = "Choose a collection, type a photo name, and select a file.";
+    return;
+  }
+
+  adminStatus.textContent = "Resizing photo for the website...";
+
+  let resizedResult;
+
+  try {
+    resizedResult = await resizeImageBeforeUpload(originalFile, 2000, 0.84);
+  } catch (error) {
+    adminStatus.textContent = "Resize failed: " + error.message;
+    return;
+  }
+
+  const uploadFile = resizedResult.file;
+  const cleanTitle = slugify(title);
+  const timeStamp = Date.now();
+  const filePath = `${collection}/${cleanTitle}-${timeStamp}.jpg`;
+
+  adminStatus.textContent =
+    `Uploading smaller web copy... Original: ${formatFileSize(resizedResult.originalSize)}. ` +
+    `Upload copy: ${formatFileSize(resizedResult.newSize)}.`;
+
+  const { error: uploadError } = await supabaseClient.storage
+    .from(STORAGE_BUCKET)
+    .upload(filePath, uploadFile, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: "image/jpeg"
+    });
+
+  if (uploadError) {
+    adminStatus.textContent = "Upload failed: " + uploadError.message;
+    return;
+  }
+
+  adminStatus.textContent = "Saving photo description...";
+
+  const { error: insertError } = await supabaseClient
+    .from("photos")
+    .insert({
+      collection,
+      title,
+      description,
+      file_path: filePath
+    });
+
+  if (insertError) {
+    adminStatus.textContent = "Photo uploaded, but description failed: " + insertError.message;
+    return;
+  }
+
+  document.getElementById("uploadTitle").value = "";
+  document.getElementById("uploadDescription").value = "";
+  document.getElementById("uploadFile").value = "";
+
+  adminStatus.textContent =
+    `Photo uploaded successfully as a web-size copy: ${resizedResult.newWidth} × ${resizedResult.newHeight}px.`;
+
+  await loadPhotoFolders();
+
+  const newFolderIndex = photoFolders.findIndex(folder => folder.id === collection);
+  if (newFolderIndex >= 0) {
+    openFolder(newFolderIndex);
+  }
+}
 
     function renderManageList() {
       if (!manageList) return;

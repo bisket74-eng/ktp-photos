@@ -571,7 +571,7 @@
 
   <div class="site-frame">
     <header>
-      <h1>KTP's Photos</h1>
+      <h1>KTP Photography</h1>
       <p>
         A gallery of original photography by Krystin.
         Browse the collections, open a folder, and save favorite photos to your cart.
@@ -667,7 +667,44 @@
       "#dcefe7",
       "#f5e6bf",
       "#dce8f8",
-      "#f3dce8"
+      "#f3dce8",
+      "#d9edf7",
+      "#dcead0",
+      "#e6e0d4",
+      "#d7edf0"
+    ];
+
+    const placeholderCategories = [
+      {
+        id: "flowers",
+        title: "Flowers",
+        description: "Photos coming soon",
+        color: "#f8dce5"
+      },
+      {
+        id: "clouds",
+        title: "Clouds",
+        description: "Photos coming soon",
+        color: "#d9edf7"
+      },
+      {
+        id: "trees",
+        title: "Trees",
+        description: "Photos coming soon",
+        color: "#dcead0"
+      },
+      {
+        id: "nature",
+        title: "Nature",
+        description: "Photos coming soon",
+        color: "#e6e0d4"
+      },
+      {
+        id: "water",
+        title: "Water",
+        description: "Photos coming soon",
+        color: "#d7edf0"
+      }
     ];
 
     let photoFolders = [];
@@ -779,15 +816,17 @@
           };
         });
 
-        if (!photoFolders.some(folder => folder.id === "flowers")) {
-          photoFolders.push({
-            id: "flowers",
-            title: "Flowers",
-            description: "Photos coming soon",
-            color: "#f8dce5",
-            photos: []
-          });
-        }
+        placeholderCategories.forEach(category => {
+          if (!photoFolders.some(folder => folder.id === category.id)) {
+            photoFolders.push({
+              id: category.id,
+              title: category.title,
+              description: category.description,
+              color: category.color,
+              photos: []
+            });
+          }
+        });
 
         photoFolders.sort((a, b) => a.title.localeCompare(b.title));
 

@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,10 +43,29 @@
       overflow: hidden;
     }
 
+    .site-frame {
+      width: min(1180px, calc(100% - 26px));
+      min-height: calc(100vh - 26px);
+      margin: 13px auto;
+      border-radius: 30px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.36) 50%, rgba(255,235,244,.28) 50%),
+        rgba(255, 255, 255, 0.20);
+      background-size: 14px 14px, auto;
+      border: 6px double rgba(141, 92, 118, 0.28);
+      outline: 1px solid rgba(255, 255, 255, 0.9);
+      outline-offset: -12px;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.38),
+        0 20px 60px rgba(90, 60, 80, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
     .main-cart-button {
-      position: fixed;
+      position: absolute;
       top: 18px;
-      right: calc(var(--frame-edge) + 18px);
+      right: 18px;
       width: 52px;
       height: 52px;
       border: 1px solid rgba(255, 255, 255, 0.95);
@@ -74,25 +92,6 @@
       display: grid;
       place-items: center;
       border: 1px solid white;
-    }
-
-    .site-frame {
-      width: min(1180px, calc(100% - 26px));
-      min-height: calc(100vh - 26px);
-      margin: 13px auto;
-      border-radius: 30px;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,.36) 50%, rgba(255,235,244,.28) 50%),
-        rgba(255, 255, 255, 0.20);
-      background-size: 14px 14px, auto;
-      border: 6px double rgba(141, 92, 118, 0.28);
-      outline: 1px solid rgba(255, 255, 255, 0.9);
-      outline-offset: -12px;
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,.38),
-        0 20px 60px rgba(90, 60, 80, 0.08);
-      position: relative;
-      overflow: hidden;
     }
 
     header {
@@ -446,9 +445,9 @@
     }
 
     .cart-panel {
-      position: fixed;
+      position: absolute;
       top: 82px;
-      right: calc(var(--frame-edge) + 18px);
+      right: 18px;
       width: min(390px, calc(100vw - 36px));
       background: rgba(255, 255, 255, 0.96);
       border: 1px solid white;
@@ -778,6 +777,7 @@
       }
 
       .main-cart-button {
+        top: 18px;
         right: 18px;
       }
 
@@ -865,12 +865,30 @@
 </head>
 
 <body oncontextmenu="return false;">
-  <button class="main-cart-button" onclick="toggleCart()" aria-label="Open cart">
-    🛒
-    <span class="cart-count" id="cartCount">0</span>
-  </button>
-
   <div class="site-frame">
+    <button class="main-cart-button" onclick="toggleCart()" aria-label="Open cart">
+      🛒
+      <span class="cart-count hidden" id="cartCount"></span>
+    </button>
+
+    <aside id="cartPanel" class="cart-panel">
+      <div class="cart-header">
+        <h2>Your Cart</h2>
+        <button class="close-cart" onclick="closeCart()">×</button>
+      </div>
+
+      <div id="cartList" class="cart-list"></div>
+
+      <p class="cart-note">
+        Checkout is not connected yet. This is a placeholder cart for now.
+        Later, this could connect to PayPal, Square, Stripe, Etsy, or a contact form.
+      </p>
+
+      <button class="checkout-button" onclick="fakeCheckout()">
+        Future Checkout
+      </button>
+    </aside>
+
     <header>
       <h1 id="siteTitle">KTP Photography</h1>
       <p>
@@ -926,24 +944,6 @@
       </div>
     </div>
   </div>
-
-  <aside id="cartPanel" class="cart-panel">
-    <div class="cart-header">
-      <h2>Your Cart</h2>
-      <button class="close-cart" onclick="closeCart()">×</button>
-    </div>
-
-    <div id="cartList" class="cart-list"></div>
-
-    <p class="cart-note">
-      Checkout is not connected yet. This is a placeholder cart for now.
-      Later, this could connect to PayPal, Square, Stripe, Etsy, or a contact form.
-    </p>
-
-    <button class="checkout-button" onclick="fakeCheckout()">
-      Future Checkout
-    </button>
-  </aside>
 
   <div id="adminOverlay" class="admin-overlay">
     <div class="admin-box">
@@ -1632,12 +1632,15 @@
     }
 
     function updateCart() {
-      cartCount.textContent = cart.length;
-
       if (cart.length === 0) {
+        cartCount.textContent = "";
+        cartCount.classList.add("hidden");
         cartList.innerHTML = `<p class="cart-note">Your cart is empty.</p>`;
         return;
       }
+
+      cartCount.textContent = cart.length;
+      cartCount.classList.remove("hidden");
 
       cartList.innerHTML = cart.map(item => `
         <div class="cart-item">
@@ -1962,4 +1965,3 @@
   </script>
 </body>
 </html>
-```

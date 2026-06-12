@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>KtP Photography</title>
+  <title>KTP Photography</title>
 
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#4a3440">
@@ -108,13 +108,33 @@
 
     header h1 {
       margin: 0;
-      font-size: clamp(3.2rem, 9.5vw, 6rem);
+    }
+
+    .brand-title {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      cursor: default;
+      user-select: none;
+    }
+
+    .brand-logo {
+      width: clamp(58px, 10vw, 92px);
+      height: clamp(58px, 10vw, 92px);
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 6px 16px rgba(141, 92, 118, 0.22));
+    }
+
+    .brand-word {
+      font-size: clamp(3.1rem, 9vw, 5.8rem);
       font-family: var(--script-font);
       font-weight: 600;
       letter-spacing: 1px;
       color: #3f2a36;
-      cursor: default;
-      user-select: none;
+      line-height: 1;
       text-shadow:
         0 2px 0 rgba(255, 255, 255, 0.85),
         0 8px 18px rgba(141, 92, 118, 0.28);
@@ -792,12 +812,25 @@
         right: 18px;
       }
 
-      .modal-content {
-        width: 100vw;
-      }
-
       header {
         padding-top: 70px;
+      }
+
+      .brand-title {
+        gap: 10px;
+      }
+
+      .brand-logo {
+        width: 54px;
+        height: 54px;
+      }
+
+      .brand-word {
+        font-size: clamp(2.6rem, 10vw, 4rem);
+      }
+
+      .modal-content {
+        width: 100vw;
       }
 
       .photo-grid {
@@ -903,7 +936,11 @@
     </aside>
 
     <header>
-      <h1 id="siteTitle">KtP Photography</h1>
+      <h1 id="siteTitle" class="brand-title" aria-label="KTP Photography">
+        <img src="./icon-512.png" alt="" class="brand-logo" />
+        <span class="brand-word">Photography</span>
+      </h1>
+
       <p>
         A gallery of original photography by Krystin.
         Browse the collections, open a folder, and save favorite photos to your cart.
@@ -990,7 +1027,7 @@
         <div id="uploadArea">
           <p class="admin-small">
             Choose the collection, type a photo name, choose the file, add a description, then upload.
-            The site will rename the file automatically.
+            The site will automatically upload a smaller web-size copy instead of the full phone photo.
           </p>
 
           <label for="uploadCollection">Collection</label>
@@ -1236,6 +1273,93 @@
         .getPublicUrl(filePath);
 
       return result.data.publicUrl;
+    }
+
+    function formatFileSize(bytes) {
+      if (!bytes && bytes !== 0) return "";
+      const mb = bytes / (1024 * 1024);
+      return `${mb.toFixed(2)} MB`;
+    }
+
+    function resizeImageBeforeUpload(file, maxSize = 2000, quality = 0.84) {
+      return new Promise((resolve, reject) => {
+        if (!file || !file.type.startsWith("image/")) {
+          reject(new Error("Please choose an image file."));
+          return;
+        }
+
+        const image = new Image();
+        const objectUrl = URL.createObjectURL(file);
+
+        image.onload = function () {
+          URL.revokeObjectURL(objectUrl);
+
+          let width = image.width;
+          let height = image.height;
+
+          if (!width || !height) {
+            reject(new Error("Could not read the image size."));
+            return;
+          }
+
+          const shouldResize = width > maxSize || height > maxSize;
+
+          if (shouldResize) {
+            if (width > height) {
+              height = Math.round((height * maxSize) / width);
+              width = maxSize;
+            } else {
+              width = Math.round((width * maxSize) / height);
+              height = maxSize;
+            }
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(image, 0, 0, width, height);
+
+          canvas.toBlob(
+            function (blob) {
+              if (!blob) {
+                reject(new Error("Could not resize the image."));
+                return;
+              }
+
+              const resizedFile = new File(
+                [blob],
+                file.name.replace(/\.[^/.]+$/, "") + "-web.jpg",
+                {
+                  type: "image/jpeg",
+                  lastModified: Date.now()
+                }
+              );
+
+              resolve({
+                file: resizedFile,
+                originalWidth: image.width,
+                originalHeight: image.height,
+                newWidth: width,
+                newHeight: height,
+                originalSize: file.size,
+                newSize: resizedFile.size,
+                wasResized: shouldResize || file.type !== "image/jpeg"
+              });
+            },
+            "image/jpeg",
+            quality
+          );
+        };
+
+        image.onerror = function () {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error("This image could not be opened by the browser."));
+        };
+
+        image.src = objectUrl;
+      });
     }
 
     async function loadPhotoFolders() {
@@ -1779,168 +1903,81 @@
       adminStatus.textContent = "";
     }
 
-    function formatFileSize(bytes) {
-  if (!bytes && bytes !== 0) return "";
-  const mb = bytes / (1024 * 1024);
-  return `${mb.toFixed(2)} MB`;
-}
+    async function uploadPhoto() {
+      const collection = uploadCollection.value;
+      const title = document.getElementById("uploadTitle").value.trim();
+      const description = document.getElementById("uploadDescription").value.trim();
+      const fileInput = document.getElementById("uploadFile");
+      const originalFile = fileInput.files[0];
 
-function resizeImageBeforeUpload(file, maxSize = 2000, quality = 0.84) {
-  return new Promise((resolve, reject) => {
-    if (!file || !file.type.startsWith("image/")) {
-      reject(new Error("Please choose an image file."));
-      return;
-    }
-
-    const image = new Image();
-    const objectUrl = URL.createObjectURL(file);
-
-    image.onload = function () {
-      URL.revokeObjectURL(objectUrl);
-
-      let width = image.width;
-      let height = image.height;
-
-      if (!width || !height) {
-        reject(new Error("Could not read the image size."));
+      if (!collection || !title || !originalFile) {
+        adminStatus.textContent = "Choose a collection, type a photo name, and select a file.";
         return;
       }
 
-      const shouldResize = width > maxSize || height > maxSize;
+      adminStatus.textContent = "Resizing photo for the website...";
 
-      if (shouldResize) {
-        if (width > height) {
-          height = Math.round((height * maxSize) / width);
-          width = maxSize;
-        } else {
-          width = Math.round((width * maxSize) / height);
-          height = maxSize;
-        }
+      let resizedResult;
+
+      try {
+        resizedResult = await resizeImageBeforeUpload(originalFile, 2000, 0.84);
+      } catch (error) {
+        adminStatus.textContent = "Resize failed: " + error.message;
+        return;
       }
 
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
+      const uploadFile = resizedResult.file;
+      const cleanTitle = slugify(title);
+      const timeStamp = Date.now();
+      const filePath = `${collection}/${cleanTitle}-${timeStamp}.jpg`;
 
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(image, 0, 0, width, height);
+      adminStatus.textContent =
+        `Uploading smaller web copy... Original: ${formatFileSize(resizedResult.originalSize)}. ` +
+        `Upload copy: ${formatFileSize(resizedResult.newSize)}.`;
 
-      canvas.toBlob(
-        function (blob) {
-          if (!blob) {
-            reject(new Error("Could not resize the image."));
-            return;
-          }
+      const { error: uploadError } = await supabaseClient.storage
+        .from(STORAGE_BUCKET)
+        .upload(filePath, uploadFile, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: "image/jpeg"
+        });
 
-          const resizedFile = new File(
-            [blob],
-            file.name.replace(/\.[^/.]+$/, "") + "-web.jpg",
-            {
-              type: "image/jpeg",
-              lastModified: Date.now()
-            }
-          );
+      if (uploadError) {
+        adminStatus.textContent = "Upload failed: " + uploadError.message;
+        return;
+      }
 
-          resolve({
-            file: resizedFile,
-            originalWidth: image.width,
-            originalHeight: image.height,
-            newWidth: width,
-            newHeight: height,
-            originalSize: file.size,
-            newSize: resizedFile.size,
-            wasResized: shouldResize || file.type !== "image/jpeg"
-          });
-        },
-        "image/jpeg",
-        quality
-      );
-    };
+      adminStatus.textContent = "Saving photo description...";
 
-    image.onerror = function () {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error("This image could not be opened by the browser."));
-    };
+      const { error: insertError } = await supabaseClient
+        .from("photos")
+        .insert({
+          collection,
+          title,
+          description,
+          file_path: filePath
+        });
 
-    image.src = objectUrl;
-  });
-}
+      if (insertError) {
+        adminStatus.textContent = "Photo uploaded, but description failed: " + insertError.message;
+        return;
+      }
 
-async function uploadPhoto() {
-  const collection = uploadCollection.value;
-  const title = document.getElementById("uploadTitle").value.trim();
-  const description = document.getElementById("uploadDescription").value.trim();
-  const fileInput = document.getElementById("uploadFile");
-  const originalFile = fileInput.files[0];
+      document.getElementById("uploadTitle").value = "";
+      document.getElementById("uploadDescription").value = "";
+      document.getElementById("uploadFile").value = "";
 
-  if (!collection || !title || !originalFile) {
-    adminStatus.textContent = "Choose a collection, type a photo name, and select a file.";
-    return;
-  }
+      adminStatus.textContent =
+        `Photo uploaded successfully as a web-size copy: ${resizedResult.newWidth} × ${resizedResult.newHeight}px.`;
 
-  adminStatus.textContent = "Resizing photo for the website...";
+      await loadPhotoFolders();
 
-  let resizedResult;
-
-  try {
-    resizedResult = await resizeImageBeforeUpload(originalFile, 2000, 0.84);
-  } catch (error) {
-    adminStatus.textContent = "Resize failed: " + error.message;
-    return;
-  }
-
-  const uploadFile = resizedResult.file;
-  const cleanTitle = slugify(title);
-  const timeStamp = Date.now();
-  const filePath = `${collection}/${cleanTitle}-${timeStamp}.jpg`;
-
-  adminStatus.textContent =
-    `Uploading smaller web copy... Original: ${formatFileSize(resizedResult.originalSize)}. ` +
-    `Upload copy: ${formatFileSize(resizedResult.newSize)}.`;
-
-  const { error: uploadError } = await supabaseClient.storage
-    .from(STORAGE_BUCKET)
-    .upload(filePath, uploadFile, {
-      cacheControl: "3600",
-      upsert: false,
-      contentType: "image/jpeg"
-    });
-
-  if (uploadError) {
-    adminStatus.textContent = "Upload failed: " + uploadError.message;
-    return;
-  }
-
-  adminStatus.textContent = "Saving photo description...";
-
-  const { error: insertError } = await supabaseClient
-    .from("photos")
-    .insert({
-      collection,
-      title,
-      description,
-      file_path: filePath
-    });
-
-  if (insertError) {
-    adminStatus.textContent = "Photo uploaded, but description failed: " + insertError.message;
-    return;
-  }
-
-  document.getElementById("uploadTitle").value = "";
-  document.getElementById("uploadDescription").value = "";
-  document.getElementById("uploadFile").value = "";
-
-  adminStatus.textContent =
-    `Photo uploaded successfully as a web-size copy: ${resizedResult.newWidth} × ${resizedResult.newHeight}px.`;
-
-  await loadPhotoFolders();
-
-  const newFolderIndex = photoFolders.findIndex(folder => folder.id === collection);
-  if (newFolderIndex >= 0) {
-    openFolder(newFolderIndex);
-  }
-}
+      const newFolderIndex = photoFolders.findIndex(folder => folder.id === collection);
+      if (newFolderIndex >= 0) {
+        openFolder(newFolderIndex);
+      }
+    }
 
     function renderManageList() {
       if (!manageList) return;

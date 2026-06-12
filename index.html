@@ -70,7 +70,7 @@
     }
 
     header {
-      padding: 34px 34px 24px;
+      padding: 30px 26px 22px;
     }
 
     header h1 {
@@ -79,43 +79,44 @@
 
     .brand-title {
       width: 100%;
-      min-height: clamp(190px, 28vw, 310px);
+      min-height: clamp(175px, 25vw, 260px);
       display: grid;
-      grid-template-columns: minmax(155px, 36%) 1fr;
-      align-items: center;
-      gap: clamp(18px, 4vw, 46px);
+      grid-template-columns: auto 1fr;
+      align-items: end;
+      gap: 8px;
       cursor: default;
       user-select: none;
     }
 
     .brand-logo {
-      width: 100%;
-      max-width: clamp(165px, 28vw, 300px);
+      width: clamp(145px, 24vw, 220px);
       height: auto;
       object-fit: contain;
       display: block;
       justify-self: start;
-      align-self: center;
+      align-self: end;
       filter: drop-shadow(0 9px 20px rgba(141, 92, 118, 0.28));
     }
 
     .brand-word {
-      font-size: clamp(4.4rem, 10vw, 8.4rem);
+      font-size: clamp(3.9rem, 9vw, 6.4rem);
       font-family: var(--script-font);
       font-weight: 600;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
       color: #3f2a36;
-      line-height: 1;
-      text-align: center;
-      justify-self: center;
+      line-height: 0.92;
+      text-align: left;
+      align-self: end;
+      justify-self: start;
       text-shadow:
         0 2px 0 rgba(255, 255, 255, 0.85),
         0 8px 18px rgba(141, 92, 118, 0.28);
       white-space: nowrap;
+      margin-bottom: 6px;
     }
 
     header p {
-      margin: 10px auto 0;
+      margin: 12px auto 0;
       max-width: 720px;
       font-size: 1.08rem;
       color: #6f5d68;
@@ -823,25 +824,29 @@
       }
 
       header {
-        padding: 28px 18px 20px;
+        padding: 24px 18px 18px;
       }
 
       .brand-title {
-        min-height: clamp(145px, 42vw, 190px);
-        grid-template-columns: minmax(108px, 38%) 1fr;
-        gap: 10px;
+        min-height: 150px;
+        grid-template-columns: auto 1fr;
+        align-items: end;
+        gap: 6px;
       }
 
       .brand-logo {
-        width: 100%;
-        max-width: clamp(118px, 36vw, 168px);
+        width: clamp(150px, 34vw, 178px);
+        max-width: none;
         justify-self: start;
+        align-self: end;
       }
 
       .brand-word {
-        font-size: clamp(2.9rem, 12vw, 4.6rem);
-        justify-self: center;
-        text-align: center;
+        font-size: clamp(3.35rem, 11vw, 4.8rem);
+        text-align: left;
+        justify-self: start;
+        align-self: end;
+        margin-bottom: 7px;
       }
 
       header p {
@@ -950,21 +955,22 @@
 
     @media (max-width: 430px) {
       header {
-        padding: 24px 14px 18px;
+        padding: 20px 14px 16px;
       }
 
       .brand-title {
         min-height: 138px;
-        grid-template-columns: 112px 1fr;
-        gap: 8px;
+        grid-template-columns: auto 1fr;
+        gap: 5px;
       }
 
       .brand-logo {
-        max-width: 112px;
+        width: 138px;
       }
 
       .brand-word {
-        font-size: clamp(2.55rem, 11vw, 3.55rem);
+        font-size: clamp(3rem, 10.5vw, 4rem);
+        margin-bottom: 6px;
       }
     }
   </style>
